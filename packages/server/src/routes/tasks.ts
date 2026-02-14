@@ -39,7 +39,7 @@ export function createTaskRoutes(
       broadcaster.broadcast('task.created', { taskId: task.id, task }, task.id);
 
       // 自动开始执行（异步）
-      executor.executeTask(task.id).catch(err => {
+      executor.executeTask(task.id, body.content).catch(err => {
         console.error(`[executor] task ${task.id} failed:`, err);
       });
 

@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import WebSocket from 'ws';
 import type { Adapter } from './adapter.js';
-import type { Task, Message, ExecutionEvent, HealthStatus } from '@openclaw/shared';
+import type { Task, ExecutionEvent, HealthStatus } from '@openclaw/shared';
 
 // ─── WebSocket Protocol Types (OpenClaw Protocol v3) ───
 
@@ -312,58 +312,20 @@ export class OpenClawAdapter implements Adapter {
 
   // ─── Execute Task (首次创建任务) ───
 
-  async *execute(task: Task, history: Message[]): AsyncGenerator<ExecutionEvent> {
+  async *execute(task: Task, content: string): AsyncGenerator<ExecutionEvent> {
     this.cancelledTasks.delete(task.id);
-    yield* this.chatSend(task.id, task.title, history);
+    yield* this.chatSend(task.id, content);
   }
 
   // ─── Send Message (在已有任务中追加消息) ───
 
-  async *sendMessage(taskId: string, _content: string, history: Message[]): AsyncGenerator<ExecutionEvent> {
-    const title = history[0]?.content.slice(0, 20) || '任务';
-    yield* this.chatSend(taskId, title, history);
-  }
-
-  // ─── Build prompt with conversation history ───
-
-  private static readonly SYSTEM_PROMPT = `你是一个任务助手。用户会通过简短的自然语言给你派任务。
-
-## 核心规则
-
-1. **信息不足时，先提问再执行。** 如果用户的描述不够清晰或缺少关键信息，你必须提出具体的澄清问题。每次只问1-3个最关键的问题。不要猜测，不要假设。
-
-2. **信息充足后，生成标题再执行。** 当你认为已经掌握了足够信息来执行任务时，在回复的第一行用以下格式生成任务标题：
-   [TITLE: 简洁的任务标题]
-   然后在下面给出你的执行结果。标题要求：10字以内，动词开头，描述核心动作。
-
-3. **判断信息是否充足的标准：**
-   - 任务目标明确（做什么）
-   - 关键约束清楚（怎么做、有什么限制）
-   - 没有歧义或多种理解
-
-4. **不要做任务管理。** 你只负责当前这一个任务。不要建议用户创建新任务，不要判断用户的消息是否属于其他任务，不要提供任务分类或拆分建议。任务的创建和管理完全由用户自己决定。
-
-## 示例
-
-用户说"帮我订机票" → 信息不足，你应该问：去哪里？什么时间？几个人？
-用户说"查一下顺丰SF1234567" → 信息充足，直接执行，回复：[TITLE: 查顺丰快递SF1234567]
-
-## 对话历史
-
-以下是本任务的完整对话记录：`;
-
-  private buildPrompt(title: string, history: Message[]): string {
-    const parts: string[] = [OpenClawAdapter.SYSTEM_PROMPT, ''];
-    for (const msg of history) {
-      const role = msg.senderType === 'user' ? '用户' : '助手';
-      parts.push(`${role}: ${msg.content}`);
-    }
-    return parts.join('\n');
+  async *sendMessage(taskId: string, content: string): AsyncGenerator<ExecutionEvent> {
+    yield* this.chatSend(taskId, content);
   }
 
   // ─── 核心：发送消息到 Gateway 并等待完整回复 ───
 
-  private async *chatSend(taskId: string, title: string, history: Message[]): AsyncGenerator<ExecutionEvent> {
+  private async *chatSend(taskId: string, content: string): AsyncGenerator<ExecutionEvent> {
     if (!this.gatewayUrl) {
       yield {
         type: 'error',
@@ -459,11 +421,9 @@ export class OpenClawAdapter implements Adapter {
     });
 
     try {
-      const prompt = this.buildPrompt(title, history);
-
       const res = await this.sendRequest('chat.send', {
         sessionKey,
-        message: prompt,
+        message: content,
         idempotencyKey: randomUUID(),
       });
 

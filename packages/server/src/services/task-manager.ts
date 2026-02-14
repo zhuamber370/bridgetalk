@@ -11,6 +11,7 @@ export class TaskManager {
     const task: Task = {
       id: generateId(),
       title: this.generateTitle(req.content),
+      titleLocked: false,
       status: 'pending',
       createdAt: now,
       updatedAt: now,
