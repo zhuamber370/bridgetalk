@@ -5,15 +5,13 @@ export function createEventRoutes(broadcaster: EventBroadcaster): Router {
   const router = Router();
 
   // GET /api/v1/events — 全局事件流
-  router.get('/events', (req, res) => {
-    const lastEventId = req.headers['last-event-id'] as string | undefined;
-    broadcaster.addClient(res, undefined, lastEventId);
+  router.get('/events', (_req, res) => {
+    broadcaster.addClient(res);
   });
 
   // GET /api/v1/tasks/:id/events — 单任务事件流
   router.get('/tasks/:id/events', (req, res) => {
-    const lastEventId = req.headers['last-event-id'] as string | undefined;
-    broadcaster.addClient(res, req.params.id, lastEventId);
+    broadcaster.addClient(res, req.params.id);
   });
 
   return router;

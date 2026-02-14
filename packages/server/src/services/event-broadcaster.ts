@@ -1,7 +1,6 @@
 import type { Response } from 'express';
 import { generateId, nowMs } from '@openclaw/shared';
-import type { SSEEvent, SSEEventType } from '@openclaw/shared';
-import { Repository } from '../db/repository.js';
+import type { SSEEventType } from '@openclaw/shared';
 
 interface SSEClient {
   id: string;
@@ -13,14 +12,13 @@ export class EventBroadcaster {
   private clients: Map<string, SSEClient> = new Map();
   private heartbeatInterval: ReturnType<typeof setInterval> | null = null;
 
-  constructor(private repo: Repository) {
+  constructor() {
     this.startHeartbeat();
   }
 
-  addClient(res: Response, taskId?: string, lastEventId?: string): string {
+  addClient(res: Response, taskId?: string): string {
     const clientId = generateId();
 
-    // Set SSE headers
     res.writeHead(200, {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
@@ -30,15 +28,6 @@ export class EventBroadcaster {
 
     this.clients.set(clientId, { id: clientId, res, taskId });
 
-    // Send missed events if resuming
-    if (lastEventId) {
-      const missed = this.repo.getSSEEventsAfter(lastEventId, taskId);
-      for (const event of missed) {
-        this.sendToClient(res, event);
-      }
-    }
-
-    // Handle disconnect
     res.on('close', () => {
       this.clients.delete(clientId);
     });
@@ -46,19 +35,10 @@ export class EventBroadcaster {
     return clientId;
   }
 
-  broadcast(eventType: SSEEventType, data: unknown, taskId?: string): SSEEvent {
-    const event: SSEEvent = {
-      id: generateId(),
-      event: eventType,
-      data,
-      timestamp: nowMs(),
-      taskId,
-    };
+  broadcast(eventType: SSEEventType, data: unknown, taskId?: string): void {
+    const id = generateId();
+    const event = { id, event: eventType, data, timestamp: nowMs(), taskId };
 
-    // Persist event
-    this.repo.createSSEEvent(event);
-
-    // Send to matching clients
     for (const client of this.clients.values()) {
       const isGlobal = !client.taskId;
       const isTaskMatch = client.taskId === taskId;
@@ -67,8 +47,6 @@ export class EventBroadcaster {
         this.sendToClient(client.res, event);
       }
     }
-
-    return event;
   }
 
   getClientCount(): number {
@@ -79,10 +57,9 @@ export class EventBroadcaster {
     if (this.heartbeatInterval) {
       clearInterval(this.heartbeatInterval);
     }
-    this.repo.cleanupOldSSEEvents();
   }
 
-  private sendToClient(res: Response, event: SSEEvent): void {
+  private sendToClient(res: Response, event: { id: string; event: string; data: unknown }): void {
     try {
       res.write(`event: ${event.event}\n`);
       res.write(`id: ${event.id}\n`);
@@ -94,12 +71,8 @@ export class EventBroadcaster {
 
   private startHeartbeat(): void {
     this.heartbeatInterval = setInterval(() => {
-      const heartbeat: SSEEvent = {
-        id: generateId(),
-        event: 'heartbeat',
-        data: { timestamp: nowMs() },
-        timestamp: nowMs(),
-      };
+      const id = generateId();
+      const heartbeat = { id, event: 'heartbeat', data: { timestamp: nowMs() } };
 
       for (const client of this.clients.values()) {
         this.sendToClient(client.res, heartbeat);
