@@ -3,7 +3,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { StoreProvider, useDispatch } from './lib/store';
 import { SSEClient } from './lib/sse-client';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { InboxPage } from './pages/InboxPage';
+import { AgentListPage } from './pages/AgentListPage';
+import { AgentInboxPage } from './pages/AgentInboxPage';
 import { TaskDetailPage } from './pages/TaskDetailPage';
 import type { Task, Message } from '@openclaw/shared';
 import './styles/index.css';
@@ -56,8 +57,9 @@ export function App() {
         <SSEConnector />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<InboxPage />} />
-            <Route path="/tasks/:id" element={<TaskDetailPage />} />
+            <Route path="/" element={<AgentListPage />} />
+            <Route path="/agents/:agentId" element={<AgentInboxPage />} />
+            <Route path="/agents/:agentId/tasks/:taskId" element={<TaskDetailPage />} />
           </Routes>
         </BrowserRouter>
       </StoreProvider>

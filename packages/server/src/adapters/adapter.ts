@@ -6,7 +6,7 @@ export interface Adapter {
   version: string;
 
   execute(task: Task, content: string): AsyncGenerator<ExecutionEvent>;
-  sendMessage(taskId: string, content: string): AsyncGenerator<ExecutionEvent>;
+  sendMessage(task: Task, content: string): AsyncGenerator<ExecutionEvent>;
   cancel(taskId: string): void;
   health(): HealthStatus;
 }

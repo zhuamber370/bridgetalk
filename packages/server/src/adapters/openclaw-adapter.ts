@@ -314,18 +314,18 @@ export class OpenClawAdapter implements Adapter {
 
   async *execute(task: Task, content: string): AsyncGenerator<ExecutionEvent> {
     this.cancelledTasks.delete(task.id);
-    yield* this.chatSend(task.id, content);
+    yield* this.chatSend(task.id, content, task.agentId);
   }
 
   // ─── Send Message (在已有任务中追加消息) ───
 
-  async *sendMessage(taskId: string, content: string): AsyncGenerator<ExecutionEvent> {
-    yield* this.chatSend(taskId, content);
+  async *sendMessage(task: Task, content: string): AsyncGenerator<ExecutionEvent> {
+    yield* this.chatSend(task.id, content, task.agentId);
   }
 
   // ─── 核心：发送消息到 Gateway 并等待完整回复 ───
 
-  private async *chatSend(taskId: string, content: string): AsyncGenerator<ExecutionEvent> {
+  private async *chatSend(taskId: string, content: string, agentId: string = 'main'): AsyncGenerator<ExecutionEvent> {
     if (!this.gatewayUrl) {
       yield {
         type: 'error',
@@ -367,8 +367,8 @@ export class OpenClawAdapter implements Adapter {
       return new Promise(resolve => { queueResolve = resolve; });
     };
 
-    // 所有任务共用同一个 session，任务隔离靠 prompt 上下文
-    const sessionKey = 'agent:main:main';
+    // 每个 Agent 独立 session，通过 agentId 动态构建 sessionKey
+    const sessionKey = `agent:${agentId}:main`;
     this.taskSessionMap.set(taskId, sessionKey);
 
     // 注册 chat 事件监听器

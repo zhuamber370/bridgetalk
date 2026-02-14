@@ -10,6 +10,7 @@ export class TaskManager {
 
     const task: Task = {
       id: generateId(),
+      agentId: req.agentId || 'main',
       title: this.generateTitle(req.content),
       titleLocked: false,
       status: 'pending',
@@ -24,11 +25,12 @@ export class TaskManager {
     return this.repo.getTask(id);
   }
 
-  listTasks(options: { status?: string; limit?: number } = {}) {
+  listTasks(options: { status?: string; limit?: number; agentId?: string } = {}) {
     const statusArr = options.status?.split(',').filter(Boolean);
     return this.repo.listTasks({
       status: statusArr,
       limit: options.limit,
+      agentId: options.agentId,
     });
   }
 

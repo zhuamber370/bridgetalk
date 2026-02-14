@@ -14,6 +14,7 @@ import { EventBroadcaster } from './services/event-broadcaster.js';
 import { TaskExecutor } from './services/task-executor.js';
 import { OpenClawAdapter } from './adapters/openclaw-adapter.js';
 import { createTaskRoutes } from './routes/tasks.js';
+import { createAgentRoutes } from './routes/agents.js';
 import { createEventRoutes } from './routes/events.js';
 
 const app = express();
@@ -39,6 +40,7 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: Date.now() });
 });
 
+app.use('/api/v1/agents', createAgentRoutes(repo));
 app.use('/api/v1/tasks', createTaskRoutes(taskManager, executor, repo, broadcaster));
 app.use('/api/v1', createEventRoutes(broadcaster));
 

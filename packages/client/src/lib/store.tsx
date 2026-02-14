@@ -5,16 +5,18 @@ import {
   type ReactNode,
   type Dispatch,
 } from 'react';
-import type { Task, Message } from '@openclaw/shared';
+import type { Task, Message, Agent } from '@openclaw/shared';
 
 // ─── State ───
 
 export interface AppState {
+  agents: Agent[];
   tasks: Task[];
   messagesByTask: Record<string, Message[]>;
 }
 
 const initialState: AppState = {
+  agents: [],
   tasks: [],
   messagesByTask: {},
 };
@@ -22,6 +24,10 @@ const initialState: AppState = {
 // ─── Actions ───
 
 type Action =
+  | { type: 'SET_AGENTS'; agents: Agent[] }
+  | { type: 'ADD_AGENT'; agent: Agent }
+  | { type: 'UPDATE_AGENT'; agent: Agent }
+  | { type: 'REMOVE_AGENT'; id: string }
   | { type: 'SET_TASKS'; tasks: Task[] }
   | { type: 'ADD_TASK'; task: Task }
   | { type: 'UPDATE_TASK'; task: Task }
@@ -31,6 +37,34 @@ type Action =
 
 function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
+    case 'SET_AGENTS':
+      return { ...state, agents: action.agents };
+
+    case 'ADD_AGENT':
+      if (state.agents.some((a) => a.id === action.agent.id)) {
+        return {
+          ...state,
+          agents: state.agents.map((a) =>
+            a.id === action.agent.id ? action.agent : a,
+          ),
+        };
+      }
+      return { ...state, agents: [...state.agents, action.agent] };
+
+    case 'UPDATE_AGENT':
+      return {
+        ...state,
+        agents: state.agents.map((a) =>
+          a.id === action.agent.id ? action.agent : a,
+        ),
+      };
+
+    case 'REMOVE_AGENT':
+      return {
+        ...state,
+        agents: state.agents.filter((a) => a.id !== action.id),
+      };
+
     case 'SET_TASKS':
       return { ...state, tasks: action.tasks };
 

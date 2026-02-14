@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAppState, useDispatch } from '../lib/store';
-import { createTask, listTasks, deleteTask } from '../lib/api';
+import { createTask, listTasks, deleteTask, getAgent } from '../lib/api';
 import { TaskItem } from '../components/TaskItem';
-import type { TaskStatus } from '@openclaw/shared';
+import type { Agent, TaskStatus } from '@openclaw/shared';
 
 type FilterTab = 'all' | 'active' | 'waiting' | 'done';
 
@@ -23,27 +23,49 @@ function matchesFilter(status: TaskStatus, filter: FilterTab): boolean {
   }
 }
 
-export function InboxPage() {
+export function AgentInboxPage() {
+  const { agentId } = useParams<{ agentId: string }>();
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [filter, setFilter] = useState<FilterTab>('all');
-  const { tasks, messagesByTask } = useAppState();
+  const [agent, setAgent] = useState<Agent | null>(null);
+  const { tasks, messagesByTask, agents } = useAppState();
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // Load tasks on mount
+  // Load agent info
   useEffect(() => {
-    listTasks()
+    if (!agentId) return;
+    const cached = agents.find((a) => a.id === agentId);
+    if (cached) {
+      setAgent(cached);
+    } else {
+      getAgent(agentId)
+        .then((a) => {
+          setAgent(a);
+          dispatch({ type: 'ADD_AGENT', agent: a });
+        })
+        .catch(console.error);
+    }
+  }, [agentId, agents, dispatch]);
+
+  // Load tasks for this agent
+  useEffect(() => {
+    if (!agentId) return;
+    listTasks(agentId)
       .then((data) => dispatch({ type: 'SET_TASKS', tasks: data }))
       .catch(console.error);
-  }, [dispatch]);
+  }, [agentId, dispatch]);
+
+  // Filter tasks by current agent
+  const agentTasks = tasks.filter((t) => t.agentId === agentId);
 
   const handleSubmit = async () => {
     const text = input.trim();
-    if (!text || sending) return;
+    if (!text || sending || !agentId) return;
     setSending(true);
     try {
-      const task = await createTask(text);
+      const task = await createTask(text, agentId);
       dispatch({ type: 'ADD_TASK', task });
       setInput('');
     } catch (err) {
@@ -60,16 +82,13 @@ export function InboxPage() {
     }
   };
 
-  // Filter + sort by updatedAt descending, waiting tasks pinned to top
-  const filteredTasks = tasks.filter((t) => matchesFilter(t.status, filter));
+  const filteredTasks = agentTasks.filter((t) => matchesFilter(t.status, filter));
   const sortedTasks = [...filteredTasks].sort((a, b) => {
-    // waiting 状态置顶
     if (a.status === 'waiting' && b.status !== 'waiting') return -1;
     if (b.status === 'waiting' && a.status !== 'waiting') return 1;
     return b.updatedAt - a.updatedAt;
   });
 
-  // 获取每个任务的最后一条消息预览
   const getLastMessage = (taskId: string): string | undefined => {
     const msgs = messagesByTask[taskId];
     if (!msgs || msgs.length === 0) return undefined;
@@ -77,19 +96,28 @@ export function InboxPage() {
     return last.content.slice(0, 50);
   };
 
-  // 各筛选的计数
   const counts = {
-    all: tasks.length,
-    active: tasks.filter((t) => t.status === 'pending' || t.status === 'running').length,
-    waiting: tasks.filter((t) => t.status === 'waiting').length,
-    done: tasks.filter((t) => t.status === 'completed' || t.status === 'failed' || t.status === 'cancelled').length,
+    all: agentTasks.length,
+    active: agentTasks.filter((t) => t.status === 'pending' || t.status === 'running').length,
+    waiting: agentTasks.filter((t) => t.status === 'waiting').length,
+    done: agentTasks.filter((t) => t.status === 'completed' || t.status === 'failed' || t.status === 'cancelled').length,
   };
 
   return (
     <div className="flex flex-col h-full bg-white">
       {/* Header */}
-      <div className="px-4 py-3 border-b bg-white">
-        <h1 className="text-lg font-semibold text-gray-900">OpenClaw Inbox</h1>
+      <div className="flex items-center gap-2 px-4 py-3 border-b bg-white">
+        <button
+          onClick={() => navigate('/')}
+          className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+        </button>
+        <h1 className="text-lg font-semibold text-gray-900 truncate">
+          {agent?.name ?? agentId}
+        </h1>
       </div>
 
       {/* Input */}
@@ -138,16 +166,7 @@ export function InboxPage() {
         {sortedTasks.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center px-6">
             <div className="w-16 h-16 rounded-full bg-indigo-50 flex items-center justify-center mb-4">
-              <svg
-                width="28"
-                height="28"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#6366f1"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
               </svg>
             </div>
@@ -161,7 +180,7 @@ export function InboxPage() {
               key={task.id}
               task={task}
               lastMessage={getLastMessage(task.id)}
-              onClick={() => navigate(`/tasks/${task.id}`)}
+              onClick={() => navigate(`/agents/${agentId}/tasks/${task.id}`)}
               onDelete={async () => {
                 await deleteTask(task.id);
                 dispatch({ type: 'REMOVE_TASK', id: task.id });

@@ -7,7 +7,7 @@ import { TaskStatusBadge } from '../components/TaskStatusBadge';
 import type { Task } from '@openclaw/shared';
 
 export function TaskDetailPage() {
-  const { id } = useParams<{ id: string }>();
+  const { agentId, taskId: id } = useParams<{ agentId: string; taskId: string }>();
   const navigate = useNavigate();
   const { tasks, messagesByTask } = useAppState();
   const dispatch = useDispatch();
@@ -107,7 +107,7 @@ export function TaskDetailPage() {
       {/* Header */}
       <div className="flex items-center gap-2 px-4 py-3 border-b bg-white">
         <button
-          onClick={() => navigate('/')}
+          onClick={() => navigate(`/agents/${agentId}`)}
           className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
         >
           <svg

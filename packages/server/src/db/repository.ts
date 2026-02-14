@@ -1,5 +1,5 @@
 import type Database from 'better-sqlite3';
-import type { Task, Message, TaskStatus } from '@openclaw/shared';
+import type { Task, Message, TaskStatus, Agent } from '@openclaw/shared';
 import { nowMs } from '@openclaw/shared';
 
 // ─── Row → Model Converters ───
@@ -7,6 +7,7 @@ import { nowMs } from '@openclaw/shared';
 function rowToTask(row: Record<string, unknown>): Task {
   return {
     id: row.id as string,
+    agentId: row.agent_id as string,
     title: row.title as string,
     titleLocked: (row.title_locked as number) === 1,
     status: row.status as TaskStatus,
@@ -26,19 +27,73 @@ function rowToMessage(row: Record<string, unknown>): Message {
   };
 }
 
+function rowToAgent(row: Record<string, unknown>): Agent {
+  return {
+    id: row.id as string,
+    name: row.name as string,
+    description: row.description as string | undefined,
+    createdAt: row.created_at as number,
+    updatedAt: row.updated_at as number,
+  };
+}
+
 // ─── Repository ───
 
 export class Repository {
   constructor(private db: Database.Database) {}
 
+  // ── Agents ──
+
+  createAgent(agent: Agent): Agent {
+    this.db.prepare(`
+      INSERT INTO agents (id, name, description, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?)
+    `).run(
+      agent.id, agent.name, agent.description ?? null,
+      agent.createdAt, agent.updatedAt,
+    );
+    return agent;
+  }
+
+  getAgent(id: string): Agent | null {
+    const row = this.db.prepare('SELECT * FROM agents WHERE id = ?').get(id);
+    return row ? rowToAgent(row as Record<string, unknown>) : null;
+  }
+
+  listAgents(): Agent[] {
+    const rows = this.db.prepare('SELECT * FROM agents ORDER BY created_at ASC').all();
+    return (rows as Record<string, unknown>[]).map(rowToAgent);
+  }
+
+  updateAgent(id: string, patches: Partial<Pick<Agent, 'name' | 'description'>>): Agent | null {
+    const sets: string[] = [];
+    const values: unknown[] = [];
+
+    if (patches.name !== undefined) { sets.push('name = ?'); values.push(patches.name); }
+    if (patches.description !== undefined) { sets.push('description = ?'); values.push(patches.description); }
+
+    if (sets.length === 0) return this.getAgent(id);
+
+    sets.push('updated_at = ?');
+    values.push(nowMs());
+    values.push(id);
+
+    this.db.prepare(`UPDATE agents SET ${sets.join(', ')} WHERE id = ?`).run(...values);
+    return this.getAgent(id);
+  }
+
+  deleteAgent(id: string): void {
+    this.db.prepare('DELETE FROM agents WHERE id = ?').run(id);
+  }
+
   // ── Tasks ──
 
   createTask(task: Task): Task {
     this.db.prepare(`
-      INSERT INTO tasks (id, title, status, created_at, updated_at, completed_at)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO tasks (id, agent_id, title, status, created_at, updated_at, completed_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `).run(
-      task.id, task.title, task.status,
+      task.id, task.agentId, task.title, task.status,
       task.createdAt, task.updatedAt, task.completedAt ?? null,
     );
     return task;
@@ -70,8 +125,8 @@ export class Repository {
     this.db.prepare('DELETE FROM tasks WHERE id = ?').run(id);
   }
 
-  listTasks(options: { status?: string[]; limit?: number } = {}): { items: Task[]; total: number } {
-    const { status, limit = 50 } = options;
+  listTasks(options: { status?: string[]; limit?: number; agentId?: string } = {}): { items: Task[]; total: number } {
+    const { status, limit = 50, agentId } = options;
 
     let where = '1=1';
     const params: unknown[] = [];
@@ -79,6 +134,11 @@ export class Repository {
     if (status && status.length > 0) {
       where += ` AND status IN (${status.map(() => '?').join(',')})`;
       params.push(...status);
+    }
+
+    if (agentId) {
+      where += ' AND agent_id = ?';
+      params.push(agentId);
     }
 
     const total = (this.db.prepare(`SELECT COUNT(*) as count FROM tasks WHERE ${where}`).get(...params) as { count: number }).count;

@@ -1,4 +1,4 @@
-import type { Task, Message } from '@openclaw/shared';
+import type { Task, Message, Agent, CreateAgentRequest } from '@openclaw/shared';
 
 const BASE = '/api/v1';
 
@@ -15,15 +15,46 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
   return res.json();
 }
 
-export async function createTask(content: string): Promise<Task> {
-  return request<Task>(`${BASE}/tasks`, {
+// ─── Agent API ───
+
+export async function listAgents(): Promise<Agent[]> {
+  return request<Agent[]>(`${BASE}/agents`);
+}
+
+export async function createAgent(req: CreateAgentRequest): Promise<Agent> {
+  return request<Agent>(`${BASE}/agents`, {
     method: 'POST',
-    body: JSON.stringify({ content }),
+    body: JSON.stringify(req),
   });
 }
 
-export async function listTasks(status?: string, limit = 50): Promise<Task[]> {
+export async function getAgent(id: string): Promise<Agent> {
+  return request<Agent>(`${BASE}/agents/${id}`);
+}
+
+export async function updateAgent(id: string, patches: { name?: string; description?: string }): Promise<Agent> {
+  return request<Agent>(`${BASE}/agents/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(patches),
+  });
+}
+
+export async function deleteAgent(id: string): Promise<void> {
+  return request<void>(`${BASE}/agents/${id}`, { method: 'DELETE' });
+}
+
+// ─── Task API ───
+
+export async function createTask(content: string, agentId?: string): Promise<Task> {
+  return request<Task>(`${BASE}/tasks`, {
+    method: 'POST',
+    body: JSON.stringify({ content, agentId }),
+  });
+}
+
+export async function listTasks(agentId?: string, status?: string, limit = 50): Promise<Task[]> {
   const params = new URLSearchParams();
+  if (agentId) params.set('agentId', agentId);
   if (status) params.set('status', status);
   params.set('limit', String(limit));
   return request<Task[]>(`${BASE}/tasks?${params}`);

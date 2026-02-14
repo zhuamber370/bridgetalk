@@ -1,9 +1,26 @@
+// ─── Agent ───
+
+export interface Agent {
+  id: string;          // 如 'main', 'travel', 'code-review'
+  name: string;        // 显示名称
+  description?: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface CreateAgentRequest {
+  id: string;
+  name: string;
+  description?: string;
+}
+
 // ─── Task ───
 
 export type TaskStatus = 'pending' | 'running' | 'completed' | 'failed' | 'waiting' | 'cancelled';
 
 export interface Task {
   id: string;
+  agentId: string;       // 关联的 Agent
   title: string;
   titleLocked: boolean;
   status: TaskStatus;
@@ -28,6 +45,7 @@ export interface Message {
 
 export interface CreateTaskRequest {
   content: string;
+  agentId?: string;    // 默认 'main'
 }
 
 export interface SendMessageRequest {
@@ -37,6 +55,7 @@ export interface SendMessageRequest {
 export interface TaskListQuery {
   status?: string;
   limit?: number;
+  agentId?: string;
 }
 
 // ─── SSE Events ───

@@ -79,7 +79,7 @@ export class TaskExecutor {
     this.broadcaster.broadcast('task.updated', { taskId, task: runningTask }, taskId);
 
     try {
-      for await (const event of this.adapter.sendMessage(taskId, content)) {
+      for await (const event of this.adapter.sendMessage(task, content)) {
         if (event.type === 'result') {
           this.handleAgentResult(taskId, event.data.message);
         } else if (event.type === 'error') {

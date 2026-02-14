@@ -52,10 +52,11 @@ export function createTaskRoutes(
   // GET /api/v1/tasks — 查询任务列表
   router.get('/', (req, res) => {
     try {
-      const { status, limit } = req.query;
+      const { status, limit, agentId } = req.query;
       const result = taskManager.listTasks({
         status: status as string | undefined,
         limit: limit ? Number(limit) : undefined,
+        agentId: agentId as string | undefined,
       });
       res.json(result.items);
     } catch (err) {
