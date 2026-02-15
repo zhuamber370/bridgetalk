@@ -9,16 +9,28 @@ import type { Task, Message, Agent } from '@openclaw/shared';
 
 // ─── State ───
 
+export interface UIState {
+  currentAgentId: string | null;
+  currentTaskId: string | null;
+  sidebarCollapsed: boolean;
+}
+
 export interface AppState {
   agents: Agent[];
   tasks: Task[];
   messagesByTask: Record<string, Message[]>;
+  ui: UIState;
 }
 
 const initialState: AppState = {
   agents: [],
   tasks: [],
   messagesByTask: {},
+  ui: {
+    currentAgentId: null,
+    currentTaskId: null,
+    sidebarCollapsed: false,
+  },
 };
 
 // ─── Actions ───
@@ -33,7 +45,11 @@ type Action =
   | { type: 'UPDATE_TASK'; task: Task }
   | { type: 'REMOVE_TASK'; id: string }
   | { type: 'SET_MESSAGES'; taskId: string; messages: Message[] }
-  | { type: 'ADD_MESSAGE'; message: Message };
+  | { type: 'ADD_MESSAGE'; message: Message }
+  | { type: 'SET_CURRENT_AGENT'; agentId: string | null }
+  | { type: 'SET_CURRENT_TASK'; taskId: string | null }
+  | { type: 'TOGGLE_SIDEBAR' }
+  | { type: 'SET_SIDEBAR_COLLAPSED'; collapsed: boolean };
 
 function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
@@ -121,6 +137,30 @@ function reducer(state: AppState, action: Action): AppState {
         },
       };
     }
+
+    case 'SET_CURRENT_AGENT':
+      return {
+        ...state,
+        ui: { ...state.ui, currentAgentId: action.agentId },
+      };
+
+    case 'SET_CURRENT_TASK':
+      return {
+        ...state,
+        ui: { ...state.ui, currentTaskId: action.taskId },
+      };
+
+    case 'TOGGLE_SIDEBAR':
+      return {
+        ...state,
+        ui: { ...state.ui, sidebarCollapsed: !state.ui.sidebarCollapsed },
+      };
+
+    case 'SET_SIDEBAR_COLLAPSED':
+      return {
+        ...state,
+        ui: { ...state.ui, sidebarCollapsed: action.collapsed },
+      };
 
     default:
       return state;

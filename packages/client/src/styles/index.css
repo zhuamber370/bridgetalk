@@ -1,9 +1,53 @@
 @import "tailwindcss";
 
 :root {
-  --color-primary: #6366f1;
-  --color-primary-hover: #4f46e5;
-  --color-bg: #f8fafc;
+  /* 主色调 */
+  --color-primary: #4F46E5;           /* Indigo 600 */
+  --color-primary-hover: #4338CA;     /* Indigo 700 */
+  --color-primary-light: #EEF2FF;     /* Indigo 50 */
+
+  /* 中性色 */
+  --color-bg: #FFFFFF;                /* 白色背景 */
+  --color-bg-secondary: #F9FAFB;      /* Gray 50 */
+  --color-sidebar: #1E293B;           /* Slate 800 */
+  --color-border: #E5E7EB;            /* Gray 200 */
+  --color-text: #111827;              /* Gray 900 */
+  --color-text-secondary: #6B7280;    /* Gray 500 */
+
+  /* 状态色 */
+  --color-success: #10B981;           /* Green 500 */
+  --color-warning: #F59E0B;           /* Amber 500 */
+  --color-error: #EF4444;             /* Red 500 */
+  --color-info: #3B82F6;              /* Blue 500 */
+
+  /* 协作色 */
+  --color-coordination: #FEF3C7;      /* Amber 100 */
+  --color-subtask: #FED7AA;           /* Orange 200 */
+
+  /* 卡片阴影 */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  --shadow-hover: 0 8px 16px -4px rgb(0 0 0 / 0.12);
+
+  /* 圆角系统 */
+  --radius-sm: 6px;    /* 小元素（徽章、标签）*/
+  --radius-md: 8px;    /* 卡片 */
+  --radius-lg: 12px;   /* 模态框 */
+  --radius-xl: 16px;   /* 大容器 */
+  --radius-full: 9999px; /* 圆形头像、按钮 */
+
+  /* 间距系统（8px 网格）*/
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+
+  /* 移动端安全区域 */
   --safe-area-bottom: env(safe-area-inset-bottom, 0px);
 }
 
@@ -25,4 +69,159 @@ body {
   overflow: hidden;
   position: fixed;
   width: 100%;
+  color: var(--color-text);
+}
+
+/* ============================================
+   动画系统
+   ============================================ */
+
+/* 页面切换动画 */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutLeft {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+}
+
+/* 消息出现动画 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 侧边栏展开/折叠 */
+@keyframes expandWidth {
+  from {
+    width: 60px;
+  }
+  to {
+    width: 240px;
+  }
+}
+
+@keyframes collapseWidth {
+  from {
+    width: 240px;
+  }
+  to {
+    width: 60px;
+  }
+}
+
+/* 工具类 */
+.animate-slide-in-right {
+  animation: slideInRight 0.2s ease-out;
+}
+
+.animate-slide-out-left {
+  animation: slideOutLeft 0.2s ease-out;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.15s ease-out;
+}
+
+/* ============================================
+   响应式工具类
+   ============================================ */
+
+/* 断点 */
+@media (min-width: 768px) {
+  .tablet\:flex { display: flex; }
+  .tablet\:hidden { display: none; }
+}
+
+@media (min-width: 1024px) {
+  .desktop\:flex { display: flex; }
+  .desktop\:hidden { display: none; }
+}
+
+/* 移动优先隐藏 */
+.mobile-only {
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .mobile-only {
+    display: none;
+  }
+}
+
+.desktop-only {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .desktop-only {
+    display: block;
+  }
+}
+
+/* ============================================
+   滚动条美化
+   ============================================ */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ============================================
+   焦点样式优化
+   ============================================ */
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ============================================
+   触摸目标优化（移动端）
+   ============================================ */
+
+@media (pointer: coarse) {
+  button, a {
+    min-height: 44px;
+    min-width: 44px;
+  }
 }

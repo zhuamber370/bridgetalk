@@ -1,49 +1,39 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppState, useDispatch } from '../lib/store';
-import { createTask, listTasks, deleteTask, getAgent } from '../lib/api';
-import { TaskCard } from '../components/TaskCard';
-import type { Agent, TaskStatus } from '@openclaw/shared';
+import { listTasks, getAgent, getTask } from '../lib/api';
+import { useResponsive } from '../lib/hooks';
+import { ThreeColumnLayout } from '../components/Layout';
+import { AgentSidebar, BottomNav } from '../components/Sidebar';
+import { TaskInboxPanel } from '../components/TaskInbox';
+import { ConversationPanel } from '../components/Conversation';
+import { CreateAgentModal } from '../components/CreateAgentModal';
+import type { Task } from '@openclaw/shared';
 
-type FilterTab = 'all' | 'active' | 'waiting' | 'done';
-
-const FILTER_TABS: { key: FilterTab; label: string }[] = [
-  { key: 'all', label: '全部' },
-  { key: 'active', label: '进行中' },
-  { key: 'waiting', label: '需回复' },
-  { key: 'done', label: '已完成' },
-];
-
-function matchesFilter(status: TaskStatus, filter: FilterTab): boolean {
-  switch (filter) {
-    case 'all': return true;
-    case 'active': return status === 'pending' || status === 'running';
-    case 'waiting': return status === 'waiting';
-    case 'done': return status === 'completed' || status === 'failed' || status === 'cancelled';
-  }
-}
-
+/**
+ * Agent Inbox 页面 - 三栏布局
+ * 路由：/agents/:agentId 或 /agents/:agentId/tasks/:taskId
+ */
 export function AgentInboxPage() {
-  const { agentId } = useParams<{ agentId: string }>();
-  const [input, setInput] = useState('');
-  const [sending, setSending] = useState(false);
-  const [filter, setFilter] = useState<FilterTab>('all');
-  const [agent, setAgent] = useState<Agent | null>(null);
-  const { tasks, messagesByTask, agents } = useAppState();
+  const { agentId, taskId } = useParams<{ agentId: string; taskId?: string }>();
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const { agents, ui } = useAppState();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { isMobile, isDesktop } = useResponsive();
 
   // Load agent info
   useEffect(() => {
     if (!agentId) return;
+
     const cached = agents.find((a) => a.id === agentId);
     if (cached) {
-      setAgent(cached);
+      dispatch({ type: 'SET_CURRENT_AGENT', agentId });
     } else {
       getAgent(agentId)
-        .then((a) => {
-          setAgent(a);
-          dispatch({ type: 'ADD_AGENT', agent: a });
+        .then((agent) => {
+          dispatch({ type: 'ADD_AGENT', agent });
+          dispatch({ type: 'SET_CURRENT_AGENT', agentId });
         })
         .catch(console.error);
     }
@@ -52,151 +42,138 @@ export function AgentInboxPage() {
   // Load tasks for this agent + poll every 5s as SSE fallback
   useEffect(() => {
     if (!agentId) return;
+
     const fetchTasks = () =>
       listTasks(agentId)
         .then((data) => dispatch({ type: 'SET_TASKS', tasks: data }))
         .catch(console.error);
+
     fetchTasks();
     const timer = setInterval(fetchTasks, 5000);
     return () => clearInterval(timer);
   }, [agentId, dispatch]);
 
-  // Filter tasks by current agent
-  const agentTasks = tasks.filter((t) => t.agentId === agentId);
+  // Set current task from URL
+  useEffect(() => {
+    if (taskId) {
+      dispatch({ type: 'SET_CURRENT_TASK', taskId });
 
-  const handleSubmit = async () => {
-    const text = input.trim();
-    if (!text || sending || !agentId) return;
-    setSending(true);
-    try {
-      const task = await createTask(text, agentId);
-      dispatch({ type: 'ADD_TASK', task });
-      setInput('');
-    } catch (err) {
-      console.error('创建任务失败:', err);
-    } finally {
-      setSending(false);
+      // Load task details if needed
+      getTask(taskId)
+        .then((task) => dispatch({ type: 'ADD_TASK', task }))
+        .catch(console.error);
+    } else {
+      dispatch({ type: 'SET_CURRENT_TASK', taskId: null });
+    }
+  }, [taskId, dispatch]);
+
+  // 侧边栏折叠控制
+  const handleToggleSidebar = () => {
+    dispatch({ type: 'TOGGLE_SIDEBAR' });
+  };
+
+  // 任务点击（导航到任务详情）
+  const handleTaskClick = (task: Task) => {
+    if (isMobile) {
+      // Mobile: 导航到新页面
+      navigate(`/agents/${agentId}/tasks/${task.id}`);
+    } else {
+      // Desktop/Tablet: 更新 URL 但保持在同一页面
+      navigate(`/agents/${agentId}/tasks/${task.id}`, { replace: true });
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
-      e.preventDefault();
-      handleSubmit();
-    }
+  // 返回（清空任务选择）
+  const handleBack = () => {
+    navigate(`/agents/${agentId}`);
   };
 
-  const filteredTasks = agentTasks.filter((t) => matchesFilter(t.status, filter));
-  const sortedTasks = [...filteredTasks].sort((a, b) => {
-    if (a.status === 'waiting' && b.status !== 'waiting') return -1;
-    if (b.status === 'waiting' && a.status !== 'waiting') return 1;
-    return b.updatedAt - a.updatedAt;
-  });
-
-  const getLastMessage = (taskId: string): string | undefined => {
-    const msgs = messagesByTask[taskId];
-    if (!msgs || msgs.length === 0) return undefined;
-    const last = msgs[msgs.length - 1];
-    return last.content.slice(0, 50);
-  };
-
-  const counts = {
-    all: agentTasks.length,
-    active: agentTasks.filter((t) => t.status === 'pending' || t.status === 'running').length,
-    waiting: agentTasks.filter((t) => t.status === 'waiting').length,
-    done: agentTasks.filter((t) => t.status === 'completed' || t.status === 'failed' || t.status === 'cancelled').length,
-  };
-
-  return (
-    <div className="flex flex-col h-full bg-white">
-      {/* Header */}
-      <div className="flex items-center gap-2 px-4 py-3 border-b bg-white">
-        <button
-          onClick={() => navigate('/')}
-          className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+  // 没有 Agent 时显示欢迎页
+  if (!agentId || agents.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full px-6" style={{ background: 'var(--color-bg)' }}>
+        <div
+          className="w-24 h-24 rounded-full flex items-center justify-center mb-8"
+          style={{ background: 'var(--color-primary-light)' }}
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="15 18 9 12 15 6" />
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
           </svg>
-        </button>
-        <h1 className="text-lg font-semibold text-gray-900 truncate">
-          {agent?.name ?? agentId}
+        </div>
+        <h1 className="text-2xl font-bold mb-2" style={{ color: 'var(--color-text)' }}>
+          欢迎使用 OpenClaw
         </h1>
-      </div>
-
-      {/* Input */}
-      <div className="flex items-center gap-2 px-4 py-3 border-b bg-gray-50">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="派个任务..."
-          className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 bg-white"
-        />
+        <p className="text-center mb-8" style={{ color: 'var(--color-text-secondary)' }}>
+          创建您的第一个 AI Agent 开始使用
+        </p>
         <button
-          onClick={handleSubmit}
-          disabled={!input.trim() || sending}
-          className="shrink-0 px-4 py-2.5 bg-indigo-500 text-white rounded-xl text-sm font-medium hover:bg-indigo-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          onClick={() => setShowCreateModal(true)}
+          className="px-6 py-3 rounded-lg text-sm font-medium text-white transition-colors"
+          style={{
+            background: 'var(--color-primary)',
+            borderRadius: 'var(--radius-md)',
+          }}
+          onMouseOver={(e) => (e.currentTarget.style.background = 'var(--color-primary-hover)')}
+          onMouseOut={(e) => (e.currentTarget.style.background = 'var(--color-primary)')}
         >
-          发送
+          新建 Agent
         </button>
-      </div>
 
-      {/* Filter tabs */}
-      <div className="flex gap-1 px-4 py-2 border-b bg-white overflow-x-auto">
-        {FILTER_TABS.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setFilter(tab.key)}
-            className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-              filter === tab.key
-                ? 'bg-indigo-100 text-indigo-700'
-                : 'text-gray-500 hover:bg-gray-100'
-            }`}
-          >
-            {tab.label}
-            {counts[tab.key] > 0 && (
-              <span className={`ml-1 ${filter === tab.key ? 'text-indigo-500' : 'text-gray-400'}`}>
-                {counts[tab.key]}
-              </span>
-            )}
-          </button>
-        ))}
+        <CreateAgentModal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} />
       </div>
+    );
+  }
 
-      {/* Task list */}
-      <div className="flex-1 overflow-y-auto">
-        {sortedTasks.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center px-6">
-            <div className="w-16 h-16 rounded-full bg-indigo-50 flex items-center justify-center mb-4">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-              </svg>
-            </div>
-            <p className="text-sm text-gray-500">
-              {filter === 'all' ? '还没有任务，输入您想做的事开始吧' : '没有符合条件的任务'}
-            </p>
-          </div>
+  // Mobile: 根据 taskId 决定显示 Inbox 还是 Conversation
+  if (isMobile) {
+    if (taskId) {
+      return <ConversationPanel taskId={taskId} onBack={handleBack} />;
+    }
+
+    return (
+      <ThreeColumnLayout
+        inbox={<TaskInboxPanel agentId={agentId} onTaskClick={handleTaskClick} showAgentSwitcher />}
+        bottomNav={<BottomNav />}
+      />
+    );
+  }
+
+  // Desktop/Tablet: 三栏或两栏布局
+  return (
+    <ThreeColumnLayout
+      sidebar={
+        isDesktop ? (
+          <AgentSidebar
+            collapsed={ui.sidebarCollapsed}
+            onToggleCollapse={handleToggleSidebar}
+          />
+        ) : undefined
+      }
+      sidebarCollapsed={ui.sidebarCollapsed}
+      inbox={
+        <TaskInboxPanel
+          agentId={agentId}
+          onTaskClick={handleTaskClick}
+          showAgentSwitcher={!isDesktop}
+        />
+      }
+      content={
+        taskId ? (
+          <ConversationPanel taskId={taskId} onBack={!isDesktop ? handleBack : undefined} />
         ) : (
-          <div className="p-3">
-            {sortedTasks.map((task) => (
-              <TaskCard
-                key={task.id}
-                task={task}
-                onDelete={async (taskId) => {
-                  try {
-                    await deleteTask(taskId);
-                    dispatch({ type: 'REMOVE_TASK', id: taskId });
-                  } catch (err) {
-                    console.error('删除任务失败:', err);
-                  }
-                }}
-              />
-            ))}
+          <div className="flex items-center justify-center h-full bg-gray-50">
+            <div className="text-center">
+              <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mx-auto mb-4">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+              </div>
+              <p className="text-sm text-gray-500">选择一个任务开始对话</p>
+            </div>
           </div>
-        )}
-      </div>
-    </div>
+        )
+      }
+    />
   );
 }

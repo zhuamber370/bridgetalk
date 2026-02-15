@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { StoreProvider, useDispatch } from './lib/store';
 import { SSEClient } from './lib/sse-client';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { GlobalKeyBindings } from './components/GlobalKeyBindings';
 import { AgentListPage } from './pages/AgentListPage';
 import { AgentInboxPage } from './pages/AgentInboxPage';
 import { TaskDetailPage } from './pages/TaskDetailPage';
@@ -56,10 +57,12 @@ export function App() {
       <StoreProvider>
         <SSEConnector />
         <BrowserRouter>
+          <GlobalKeyBindings />
           <Routes>
             <Route path="/" element={<AgentListPage />} />
             <Route path="/agents/:agentId" element={<AgentInboxPage />} />
-            <Route path="/agents/:agentId/tasks/:taskId" element={<TaskDetailPage />} />
+            {/* 任务详情也使用 AgentInboxPage（三栏布局）*/}
+            <Route path="/agents/:agentId/tasks/:taskId" element={<AgentInboxPage />} />
           </Routes>
         </BrowserRouter>
       </StoreProvider>
