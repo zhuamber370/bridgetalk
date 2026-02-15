@@ -1,4 +1,4 @@
-import type { Task } from '@openclaw/shared';
+import type { Task } from '@bridgetalk/shared';
 import { TaskStatusBadge } from './TaskStatusBadge';
 
 function timeAgo(ts: number): string {

@@ -1,0 +1,23 @@
+name: Question
+description: 使用过程中的疑问
+title: "[Question] "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        在提问前，请先查看 [README.md](https://github.com/zhuamber370/bridgetalk#readme) 和 [常见问题](https://github.com/zhuamber370/bridgetalk#常见问题)。
+
+  - type: textarea
+    id: question
+    attributes:
+      label: 你的问题
+      description: 详细描述你的疑问
+    validations:
+      required: true
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: 已尝试的方法
+      description: 你已经尝试了哪些方法？

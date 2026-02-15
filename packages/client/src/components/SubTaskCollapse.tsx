@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -11,7 +12,7 @@ import {
   Clock,
   AlertCircle
 } from 'lucide-react';
-import type { Task, Message } from '@openclaw/shared';
+import type { Task, Message } from '@bridgetalk/shared';
 import { useAppState } from '../lib/store';
 import { MessageItem } from './Conversation/MessageItem';
 
@@ -25,6 +26,7 @@ const statusConfig = {
 };
 
 export function SubTaskCollapse({ task }: { task?: Task }) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const { messagesByTask, agents } = useAppState();
 
@@ -59,7 +61,7 @@ export function SubTaskCollapse({ task }: { task?: Task }) {
               {agent?.name || task.agentId}
             </span>
             <p className="text-[12px] text-[var(--color-delegated)]">
-              工作过程
+              {t('taskInbox.workProcess')}
             </p>
           </div>
         </div>
@@ -87,7 +89,7 @@ export function SubTaskCollapse({ task }: { task?: Task }) {
               {subMessages.length === 0 ? (
                 <div className="text-[14px] text-[var(--color-text-muted)] text-center py-6"
                 >
-                  暂无消息
+                  {t('message.noMessages')}
                 </div>
               ) : (
                 <div className="space-y-0">
@@ -117,7 +119,7 @@ export function SubTaskCollapse({ task }: { task?: Task }) {
                   className="inline-flex items-center gap-1.5 text-[13px] text-[var(--color-delegated)] hover:text-[var(--color-delegated-dark)] font-medium transition-colors"
                 >
                   <FolderOpen className="w-4 h-4" />
-                  查看完整对话
+                  {t('taskInbox.viewFullConversation')}
                   <ChevronRight className="w-4 h-4" />
                 </Link>
               </div>

@@ -5,7 +5,7 @@ import {
   type ReactNode,
   type Dispatch,
 } from 'react';
-import type { Task, Message, Agent } from '@openclaw/shared';
+import type { Task, Message, Agent } from '@bridgetalk/shared';
 
 // ─── State ───
 

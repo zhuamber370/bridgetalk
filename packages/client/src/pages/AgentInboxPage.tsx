@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { Bot, Plus } from 'lucide-react';
 import { useAppState, useDispatch } from '../lib/store';
 import { listTasks, getAgent, getTask, listAgents } from '../lib/api';
@@ -10,7 +11,7 @@ import { AgentSidebar, BottomNav } from '../components/Sidebar';
 import { TaskInboxPanel } from '../components/TaskInbox';
 import { ConversationPanel } from '../components/Conversation';
 import { CreateAgentModal } from '../components/CreateAgentModal';
-import type { Task } from '@openclaw/shared';
+import type { Task } from '@bridgetalk/shared';
 
 /**
  * Agent Inbox 页面 - 使用新的AdaptiveLayout
@@ -22,6 +23,7 @@ export function AgentInboxPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { isMobile, isDesktop } = useResponsive();
+  const { t } = useTranslation();
 
   // Load all agents list on mount
   useEffect(() => {
@@ -112,11 +114,11 @@ export function AgentInboxPage() {
           </div>
           
           <h1 className="text-2xl font-bold mb-3 text-[var(--color-text)]">
-            欢迎使用 OpenClaw
+            {t('pages.welcome.title')}
           </h1>
           
           <p className="text-center mb-8 text-[var(--color-text-secondary)] max-w-sm">
-            创建您的第一个 AI Agent 开始智能任务管理之旅
+            {t('pages.welcome.subtitle')}
           </p>
           
           <motion.button
@@ -126,7 +128,7 @@ export function AgentInboxPage() {
             className="flex items-center gap-2 px-6 py-3 rounded-xl text-[15px] font-semibold text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] transition-colors shadow-lg"
           >
             <Plus className="w-5 h-5" />
-            新建 Agent
+            {t('pages.welcome.createAgent')}
           </motion.button>
 
           <CreateAgentModal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} />

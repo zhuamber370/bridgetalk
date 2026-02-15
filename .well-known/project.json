@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "BridgeTalk",
+  "version": "0.2.0",
+  "description": "A minimal, task-focused client for OpenClaw Gateway with multi-agent management and local data persistence",
+  "tagline": "Bridge the gap between you and AI agents",
+  "category": "AI Tools",
+  "subcategories": [
+    "Agent Client",
+    "Task Management",
+    "Chat Interface"
+  ],
+  "keywords": [
+    "ai",
+    "agent",
+    "openclaw",
+    "chat",
+    "task-management",
+    "inbox",
+    "pwa",
+    "minimalist",
+    "local-first",
+    "typescript",
+    "react",
+    "express",
+    "sqlite",
+    "websocket"
+  ],
+  "purpose": {
+    "problem": "OpenClaw Gateway's default UI lacks multi-agent management, persistent storage, and task-focused workflow",
+    "solution": "BridgeTalk provides a task-centric interface with multi-agent support, SQLite persistence, and PWA capabilities",
+    "target_users": [
+      "OpenClaw Gateway users",
+      "AI enthusiasts",
+      "Developers managing multiple AI agents"
+    ]
+  },
+  "key_features": [
+    {
+      "name": "Task-First Mode",
+      "description": "Conversations are organized around tasks, not simple chat logs",
+      "benefit": "Better context management and task tracking"
+    },
+    {
+      "name": "Multi-Agent Management",
+      "description": "Manage multiple AI agents with different models and prompts simultaneously",
+      "benefit": "Use specialized agents for different tasks"
+    },
+    {
+      "name": "Local Persistence",
+      "description": "All data stored in local SQLite database",
+      "benefit": "Full privacy and offline access to conversation history"
+    },
+    {
+      "name": "Mobile-First PWA",
+      "description": "Installable Progressive Web App with responsive design",
+      "benefit": "Use on any device, install to home screen"
+    },
+    {
+      "name": "Sub-task Collaboration",
+      "description": "Multiple agents can collaborate on complex tasks",
+      "benefit": "Delegate work between specialized agents"
+    },
+    {
+      "name": "Minimalist Design",
+      "description": "Pure black and white interface with zero distractions",
+      "benefit": "Focus on content, not decoration"
+    }
+  ],
+  "technology": {
+    "frontend": [
+      "React 18",
+      "TypeScript",
+      "Tailwind CSS 4",
+      "Vite",
+      "Framer Motion"
+    ],
+    "backend": [
+      "Express",
+      "TypeScript",
+      "better-sqlite3",
+      "WebSocket (ws)"
+    ],
+    "protocols": [
+      "OpenClaw Gateway Protocol v3",
+      "Server-Sent Events (SSE)",
+      "REST API"
+    ],
+    "database": "SQLite 3"
+  },
+  "links": {
+    "repository": "https://github.com/zhuamber370/bridgetalk",
+    "documentation": "https://github.com/zhuamber370/bridgetalk#readme",
+    "issues": "https://github.com/zhuamber370/bridgetalk/issues",
+    "discussions": "https://github.com/zhuamber370/bridgetalk/discussions",
+    "architecture": "https://github.com/zhuamber370/bridgetalk/blob/main/docs/ARCHITECTURE.md",
+    "api_reference": "https://github.com/zhuamber370/bridgetalk/blob/main/docs/API.md",
+    "deployment_guide": "https://github.com/zhuamber370/bridgetalk/blob/main/DEPLOYMENT.md"
+  },
+  "requirements": {
+    "dependencies": [
+      "OpenClaw Gateway",
+      "Node.js 18+",
+      "pnpm 8+"
+    ],
+    "optional": [
+      "Nginx (for production)",
+      "PM2 (for production)"
+    ]
+  },
+  "quickstart": {
+    "install": "git clone https://github.com/zhuamber370/bridgetalk.git && cd bridgetalk && pnpm install",
+    "configure": "cp .env.example .env && edit .env with your OpenClaw Gateway token",
+    "run": "pnpm dev",
+    "access": "http://localhost:5173"
+  },
+  "comparison": {
+    "vs_openclaw_default": {
+      "task_mode": "Simple chat vs Task-centric",
+      "agents": "Single session vs Multi-agent",
+      "persistence": "Temporary vs Permanent (SQLite)",
+      "mobile": "Basic vs PWA",
+      "collaboration": "None vs Sub-task delegation"
+    }
+  },
+  "license": "MIT",
+  "author": "zhuamber370",
+  "created": "2026-02",
+  "status": "active",
+  "maturity": "beta",
+  "last_updated": "2026-02-16"
+}

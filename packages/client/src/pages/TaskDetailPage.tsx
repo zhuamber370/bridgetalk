@@ -1,13 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAppState, useDispatch } from '../lib/store';
 import { listMessages, sendMessage, getTask, updateTask } from '../lib/api';
 import { MessageBubble } from '../components/MessageBubble';
 import { SubTaskCollapse } from '../components/SubTaskCollapse';
 import { TaskStatusBadge } from '../components/TaskStatusBadge';
-import type { Task, Message, CoordinationData } from '@openclaw/shared';
+import type { Task, Message, CoordinationData } from '@bridgetalk/shared';
 
 export function TaskDetailPage() {
+  const { t } = useTranslation();
   const { agentId, taskId: id } = useParams<{ agentId: string; taskId: string }>();
   const navigate = useNavigate();
   const { tasks, messagesByTask, agents } = useAppState();
@@ -84,7 +86,7 @@ export function TaskDetailPage() {
     try {
       await sendMessage(id, text);
     } catch (err) {
-      console.error('发送消息失败:', err);
+      console.error(t('errors.sendMessageFailed'), err);
     } finally {
       setSending(false);
     }
@@ -111,7 +113,7 @@ export function TaskDetailPage() {
       const updated = await updateTask(id, { title: newTitle });
       dispatch({ type: 'UPDATE_TASK', task: updated });
     } catch (err) {
-      console.error('修改标题失败:', err);
+      console.error(t('pages.taskDetail.updateTitleFailed'), err);
     }
   };
 
@@ -163,7 +165,7 @@ export function TaskDetailPage() {
             onClick={handleTitleClick}
             className="text-sm font-medium text-gray-900 truncate flex-1 cursor-pointer hover:text-indigo-600 transition-colors"
           >
-            {task?.title ?? '加载中...'}
+            {task?.title ?? t('common.loading')}
           </span>
         )}
 
@@ -178,14 +180,14 @@ export function TaskDetailPage() {
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
             </svg>
             <span>
-              这是由 <strong>{parentAgent?.name || '未知'}</strong> 委派的任务
+              {t('pages.taskDetail.delegatedBy', { agentName: parentAgent?.name || t('common.unknown') })}
             </span>
           </div>
           <Link
             to={`/agents/${parentTask.agentId}/tasks/${parentTask.id}`}
             className="inline-flex items-center text-sm text-amber-600 hover:underline"
           >
-            → 查看主任务
+            → {t('pages.taskDetail.viewParentTask')}
           </Link>
         </div>
       )}
@@ -194,7 +196,7 @@ export function TaskDetailPage() {
       <div className="flex-1 overflow-y-auto px-4 py-4">
         {messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
-            <p className="text-sm text-gray-400">暂无消息</p>
+            <p className="text-sm text-gray-400">{t('message.noMessages')}</p>
           </div>
         ) : (
           messages.map((msg) => {
@@ -231,7 +233,7 @@ export function TaskDetailPage() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="继续对话..."
+          placeholder={t('pages.taskDetail.continueConversation')}
           className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400"
         />
         <button

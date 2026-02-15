@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { GitPullRequest, Clock, Trash2, MoreHorizontal } from 'lucide-react';
 import { TaskStatusBadge } from '../TaskStatusBadge';
-import type { Task } from '@openclaw/shared';
+import type { Task } from '@bridgetalk/shared';
 
 export interface TaskCardCompactProps {
   task: Task;
@@ -28,6 +29,8 @@ export function TaskCardCompact({
   onDelete,
   lastMessagePreview,
 }: TaskCardCompactProps) {
+  const { t } = useTranslation();
+
   const formatTime = (timestamp: number) => {
     const now = Date.now();
     const diff = now - timestamp;
@@ -35,10 +38,10 @@ export function TaskCardCompact({
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
 
-    if (minutes < 1) return '刚刚';
-    if (minutes < 60) return `${minutes}分钟前`;
-    if (hours < 24) return `${hours}小时前`;
-    if (days < 7) return `${days}天前`;
+    if (minutes < 1) return t('time.justNow');
+    if (minutes < 60) return t('time.minutesAgo', { count: minutes });
+    if (hours < 24) return t('time.hoursAgo', { count: hours });
+    if (days < 7) return t('time.daysAgo', { count: days });
 
     return new Date(timestamp).toLocaleDateString('zh-CN', {
       month: 'short',
@@ -46,7 +49,6 @@ export function TaskCardCompact({
     });
   };
 
-  // 子任务标识
   const isSubTask = !!task.parentTaskId;
 
   return (
@@ -72,12 +74,11 @@ export function TaskCardCompact({
         <div className="absolute left-0 top-3 bottom-3 w-1 bg-[var(--color-delegated)] rounded-r-full" />
       )}
 
-      {/* 委派标签 */}
       {isSubTask && (
         <div className="flex items-center gap-1.5 mb-1">
           <GitPullRequest className="w-3.5 h-3.5 text-[var(--color-delegated)]" />
           <span className="text-[11px] font-medium text-[var(--color-delegated-dark)]">
-            委派任务
+            {t('taskInbox.delegatedTask')}
           </span>
         </div>
       )}
@@ -110,12 +111,11 @@ export function TaskCardCompact({
           <span>{formatTime(task.updatedAt)}</span>
         </div>
 
-        {/* 删除按钮（悬停显示）*/}
         {onDelete && (
           <motion.button
             onClick={(e) => {
               e.stopPropagation();
-              if (confirm('确定删除这个任务吗？')) {
+              if (confirm(t('common.confirm'))) {
                 onDelete(task.id);
               }
             }}

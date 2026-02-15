@@ -9,8 +9,8 @@ import { join } from 'node:path';
 import { homedir } from 'node:os';
 import { initDatabase } from '../db/schema.js';
 import { Repository } from '../db/repository.js';
-import { generateId, nowMs } from '@openclaw/shared';
-import type { Task, Message } from '@openclaw/shared';
+import { generateId, nowMs } from '@bridgetalk/shared';
+import type { Task, Message } from '@bridgetalk/shared';
 
 interface SessionEvent {
   type: string;

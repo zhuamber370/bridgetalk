@@ -1,4 +1,4 @@
-import type { Message } from '@openclaw/shared';
+import type { Message } from '@bridgetalk/shared';
 
 export interface MessageCardProps {
   message: Message;

@@ -1,10 +1,11 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, Plus, Grid3X3, User, ChevronUp } from 'lucide-react';
+import { Home, Plus, Grid3X3, Globe } from 'lucide-react';
 import { useAppState, useDispatch } from '../../lib/store';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { CreateAgentModal } from '../CreateAgentModal';
-import type { Agent } from '@openclaw/shared';
+import type { Agent } from '@bridgetalk/shared';
 
 export interface BottomNavProps {
   /** 最多显示的Agent数量（超过显示"更多"）*/
@@ -27,6 +28,8 @@ export function BottomNav({ maxAgents = 4 }: BottomNavProps) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+  const { t, i18n } = useTranslation();
+  const currentLang = i18n.language;
 
   // 按未读数排序Agent
   const sortedAgents = [...agents]
@@ -77,12 +80,12 @@ export function BottomNav({ maxAgents = 4 }: BottomNavProps) {
         className="flex items-center justify-around bg-white border-t border-[var(--color-border)] px-2"
         style={{ paddingBottom: 'var(--safe-area-bottom)' }}
       >
-        {/* 首页 */}
+        {/* Home */}
         <NavButton
           active={isHome}
           onClick={handleGoHome}
           icon={<Home className="w-5 h-5" />}
-          label="首页"
+          label={t('pages.agentInbox.home')}
         />
 
         {/* Agent快捷入口 */}
@@ -112,12 +115,15 @@ export function BottomNav({ maxAgents = 4 }: BottomNavProps) {
           />
         ) : null}
 
-        {/* 个人中心 */}
+        {/* Language Switcher */}
         <NavButton
           active={false}
-          onClick={() => {}}
-          icon={<User className="w-5 h-5" />}
-          label="我的"
+          onClick={() => {
+            const newLang = currentLang === 'zh-CN' ? 'en' : 'zh-CN';
+            i18n.changeLanguage(newLang);
+          }}
+          icon={<Globe className="w-5 h-5" />}
+          label={currentLang === 'zh-CN' ? '中文' : 'EN'}
         />
       </nav>
 
@@ -148,11 +154,11 @@ export function BottomNav({ maxAgents = 4 }: BottomNavProps) {
                 <div className="w-10 h-1 bg-[var(--color-slate-300)] rounded-full" />
               </div>
 
-              {/* 标题 */}
+              {/* Title */}
               <div className="px-5 pb-3 border-b border-[var(--color-border)]">
                 <div className="flex items-center justify-between">
                   <h3 className="text-[17px] font-bold text-[var(--color-text)]">
-                    选择 Agent
+                    {t('pages.agentInbox.selectAgent')}
                   </h3>
                   <motion.button
                     onClick={() => setShowCreateModal(true)}
@@ -161,7 +167,7 @@ export function BottomNav({ maxAgents = 4 }: BottomNavProps) {
                     className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] font-medium"
                   >
                     <Plus className="w-4 h-4" />
-                    新建
+                    {t('pages.agentInbox.create')}
                   </motion.button>
                 </div>
               </div>
@@ -195,7 +201,7 @@ export function BottomNav({ maxAgents = 4 }: BottomNavProps) {
                           </span>
                           {isActive && (
                             <span className="text-[11px] bg-[var(--color-primary)] text-white px-1.5 py-0.5 rounded">
-                              当前
+                              {t('pages.agentInbox.current')}
                             </span>
                           )}
                         </div>

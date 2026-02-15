@@ -1,5 +1,5 @@
-import { generateId, nowMs } from '@openclaw/shared';
-import type { Task, CreateTaskRequest } from '@openclaw/shared';
+import { generateId, nowMs } from '@bridgetalk/shared';
+import type { Task, CreateTaskRequest } from '@bridgetalk/shared';
 import { Repository } from '../db/repository.js';
 
 export class TaskManager {

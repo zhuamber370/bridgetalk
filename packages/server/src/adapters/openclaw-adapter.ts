@@ -4,7 +4,8 @@ import { join } from 'node:path';
 import { homedir } from 'node:os';
 import WebSocket from 'ws';
 import type { Adapter } from './adapter.js';
-import type { Task, ExecutionEvent, HealthStatus, CoordinationData } from '@openclaw/shared';
+import type { Task, ExecutionEvent, HealthStatus, CoordinationData } from '@bridgetalk/shared';
+import { logger } from '../lib/logger.js';
 
 // ─── WebSocket Protocol Types (OpenClaw Protocol v3) ───
 

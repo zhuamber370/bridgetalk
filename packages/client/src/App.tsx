@@ -7,7 +7,7 @@ import { GlobalKeyBindings } from './components/GlobalKeyBindings';
 import { AgentListPage } from './pages/AgentListPage';
 import { AgentInboxPage } from './pages/AgentInboxPage';
 import { TaskDetailPage } from './pages/TaskDetailPage';
-import type { Task, Message } from '@openclaw/shared';
+import type { Task, Message } from '@bridgetalk/shared';
 import './styles/index.css';
 
 function SSEConnector() {

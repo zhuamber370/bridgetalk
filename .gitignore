@@ -1,14 +1,50 @@
+# Dependencies
 node_modules/
+
+# Build outputs
 dist/
+*.tsbuildinfo
+
+# Database files
 *.db
 *.db-journal
 *.db-wal
 *.db-shm
+
+# Environment variables
 .env
 .env.local
+.env.*.local
+
+# IDE configurations
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+
+# OS generated files
 .DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
 *.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
 coverage/
+
+# Vite
 .vite/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Claude Code
 .claude/
-*.tsbuildinfo

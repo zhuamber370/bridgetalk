@@ -1,6 +1,6 @@
 import type { Response } from 'express';
-import { generateId, nowMs } from '@openclaw/shared';
-import type { SSEEventType } from '@openclaw/shared';
+import { generateId, nowMs } from '@bridgetalk/shared';
+import type { SSEEventType } from '@bridgetalk/shared';
 
 interface SSEClient {
   id: string;

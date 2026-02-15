@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useAppState, useDispatch } from '../../lib/store';
 import { useNavigate } from 'react-router-dom';
-import type { Agent } from '@openclaw/shared';
+import type { Agent } from '@bridgetalk/shared';
 
 export interface AgentSwitcherProps {
   /** 当前选中的 Agent ID */

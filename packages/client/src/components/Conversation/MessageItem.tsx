@@ -1,6 +1,5 @@
-import { motion } from 'framer-motion';
 import { User, Bot } from 'lucide-react';
-import type { Message, CoordinationData, Agent } from '@openclaw/shared';
+import type { Message, CoordinationData, Agent } from '@bridgetalk/shared';
 import { useAppState } from '../../lib/store';
 
 export interface MessageItemProps {
@@ -44,13 +43,14 @@ export function MessageItem({
   };
 
   const getAgentColor = (agentId: string): string => {
+    // 使用 CSS 变量而非硬编码颜色
     const colors = [
-      'bg-blue-500',
-      'bg-emerald-500',
-      'bg-violet-500',
-      'bg-amber-500',
-      'bg-rose-500',
-      'bg-cyan-500',
+      'var(--color-info)',       // Blue
+      'var(--color-success)',    // Emerald
+      'var(--color-primary)',    // Violet
+      'var(--color-warning)',    // Amber
+      'var(--color-error)',      // Rose
+      'var(--color-delegated)',  // Cyan
     ];
     let hash = 0;
     for (let i = 0; i < agentId.length; i++) {
@@ -74,18 +74,17 @@ export function MessageItem({
     }
 
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex justify-center my-4"
+      <div
+        className="flex justify-center my-4 animate-fade-in"
+        role="status"
+        aria-live="polite"
       >
-        <div className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-[var(--color-warning-light)] border border-[var(--color-warning)]/20 max-w-[90%]"
-        >
+        <div className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-[var(--color-warning-light)] border border-[var(--color-warning)]/20 max-w-[90%]">
           <span className="text-[13px] text-[var(--color-warning-dark)] font-medium text-center">
             {content}
           </span>
         </div>
-      </motion.div>
+      </div>
     );
   }
 
@@ -95,11 +94,10 @@ export function MessageItem({
   // 用户消息（右对齐）
   if (isUser) {
     return (
-      <motion.div
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.2 }}
-        className={`flex justify-end ${isGrouped ? 'mt-2' : 'mt-5'}`}
+      <div
+        className={`flex justify-end ${isGrouped ? 'mt-2' : 'mt-5'} ${!isGrouped ? 'animate-fade-in-up' : ''}`}
+        role="article"
+        aria-label={`你发送的消息: ${message.content}`}
       >
         <div className="flex flex-col items-end max-w-[85%]">
           {/* 头像（仅在comfortable模式且未分组时显示）*/}
@@ -132,7 +130,7 @@ export function MessageItem({
             </span>
           )}
         </div>
-      </motion.div>
+      </div>
     );
   }
 
@@ -143,20 +141,22 @@ export function MessageItem({
       : 'AI';
     const agentColor = message.senderAgentId
       ? getAgentColor(message.senderAgentId)
-      : 'bg-[var(--color-slate-400)]';
+      : 'var(--color-slate-400)';
 
     return (
-      <motion.div
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.2 }}
-        className={`flex justify-start ${isGrouped ? 'mt-2' : 'mt-5'}`}
+      <div
+        className={`flex justify-start ${isGrouped ? 'mt-2' : 'mt-5'} ${!isGrouped ? 'animate-fade-in-up' : ''}`}
+        role="article"
+        aria-label={`${agentName}的回复: ${message.content}`}
       >
         <div className="flex gap-3 max-w-[90%]">
           {/* 头像 */}
           {variant === 'comfortable' && showAvatar && !isGrouped && (
             <div className="flex flex-col items-center shrink-0">
-              <div className={`w-9 h-9 rounded-full ${agentColor} flex items-center justify-center`}
+              <div
+                className="w-9 h-9 rounded-full flex items-center justify-center"
+                style={{ backgroundColor: agentColor }}
+                aria-hidden="true"
               >
                 <Bot className="w-5 h-5 text-white" />
               </div>
@@ -191,21 +191,17 @@ export function MessageItem({
             )}
           </div>
         </div>
-      </motion.div>
+      </div>
     );
   }
 
   // 其他类型消息（降级显示）
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="flex justify-start mt-5"
-    >
+    <div className="flex justify-start mt-5 animate-fade-in" role="article">
       <div className="px-5 py-3.5 rounded-2xl bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] text-[16px] max-w-[85%]">
         {message.content}
       </div>
-    </motion.div>
+    </div>
   );
 }
 

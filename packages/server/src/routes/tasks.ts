@@ -3,10 +3,10 @@ import type { TaskManager } from '../services/task-manager.js';
 import type { TaskExecutor } from '../services/task-executor.js';
 import type { EventBroadcaster } from '../services/event-broadcaster.js';
 import type { Repository } from '../db/repository.js';
-import type { CreateTaskRequest, SendMessageRequest, Message, Task } from '@openclaw/shared';
-import { generateId, nowMs } from '@openclaw/shared';
+import type { CreateTaskRequest, SendMessageRequest, Message, Task } from '@bridgetalk/shared';
+import { generateId, nowMs } from '@bridgetalk/shared';
 
-// 辅助函数：为子任务动态填充主任务标题
+// Helper function: dynamically fill parent task title for subtasks
 function enrichTaskTitle(task: Task, repo: Repository): Task {
   if (task.parentTaskId && !task.titleLocked) {
     const parentTask = repo.getTask(task.parentTaskId);
@@ -36,7 +36,7 @@ export function createTaskRoutes(
 
       const task = taskManager.createTask(body);
 
-      // 创建用户原始消息
+      // Create user original message
       const userMsg: Message = {
         id: generateId(),
         taskId: task.id,
@@ -46,15 +46,15 @@ export function createTaskRoutes(
       };
       repo.createMessage(userMsg);
 
-      // 广播任务创建事件
+      // Broadcast task creation event
       broadcaster.broadcast('task.created', { taskId: task.id, task }, task.id);
 
-      // 自动开始执行（异步）
+      // Auto start execution (async)
       executor.executeTask(task.id, body.content).catch(err => {
         console.error(`[executor] task ${task.id} failed:`, err);
       });
 
-      // 为子任务动态填充主任务标题
+      // Dynamically fill parent task title for subtasks
       const enrichedTask = enrichTaskTitle(task, repo);
       res.status(201).json(enrichedTask);
     } catch (err) {
@@ -71,7 +71,7 @@ export function createTaskRoutes(
         limit: limit ? Number(limit) : undefined,
         agentId: agentId as string | undefined,
       });
-      // 为子任务动态填充主任务标题
+      // Dynamically fill parent task title for subtasks
       const enrichedTasks = result.items.map(task => enrichTaskTitle(task, repo));
       res.json(enrichedTasks);
     } catch (err) {
@@ -87,7 +87,7 @@ export function createTaskRoutes(
         res.status(404).json({ error: '任务不存在' });
         return;
       }
-      // 为子任务动态填充主任务标题
+      // Dynamically fill parent task title for subtasks
       const enrichedTask = enrichTaskTitle(task, repo);
       res.json(enrichedTask);
     } catch (err) {
@@ -95,22 +95,22 @@ export function createTaskRoutes(
     }
   });
 
-  // POST /api/v1/tasks/:id/messages — 发送消息
+  // POST /api/v1/tasks/:id/messages — Send message
   router.post('/:id/messages', (req, res) => {
     try {
       const task = taskManager.getTask(req.params.id);
       if (!task) {
-        res.status(404).json({ error: '任务不存在' });
+        res.status(404).json({ error: 'Task not found' });
         return;
       }
 
       const body = req.body as SendMessageRequest;
       if (!body.content?.trim()) {
-        res.status(400).json({ error: '内容不能为空' });
+        res.status(400).json({ error: 'Content cannot be empty' });
         return;
       }
 
-      // 发送消息到 Agent 并等待回复（异步）
+      // Send message to Agent and wait for response (async)
       executor.sendMessage(task.id, body.content).catch(err => {
         console.error(`[executor] sendMessage for task ${task.id} failed:`, err);
       });
@@ -121,7 +121,7 @@ export function createTaskRoutes(
     }
   });
 
-  // GET /api/v1/tasks/:id/messages — 获取消息历史
+  // GET /api/v1/tasks/:id/messages — Get message history
   router.get('/:id/messages', (req, res) => {
     try {
       const messages = repo.listMessages(req.params.id);
@@ -131,7 +131,7 @@ export function createTaskRoutes(
     }
   });
 
-  // PATCH /api/v1/tasks/:id — 更新任务（标题等）
+  // PATCH /api/v1/tasks/:id — Update task (title, etc.)
   router.patch('/:id', (req, res) => {
     try {
       const existing = taskManager.getTask(req.params.id);
@@ -141,14 +141,14 @@ export function createTaskRoutes(
       }
       const { title } = req.body as { title?: string };
       if (!title?.trim()) {
-        res.status(400).json({ error: '标题不能为空' });
+        res.status(400).json({ error: 'Title cannot be empty' });
         return;
       }
       const updated = repo.updateTask(req.params.id, { title: title.trim(), titleLocked: true });
       if (updated) {
         broadcaster.broadcast('task.updated', { taskId: updated.id, task: updated }, updated.id);
       }
-      // 为子任务动态填充主任务标题
+      // Dynamically fill parent task title for subtasks
       const enrichedTask = updated ? enrichTaskTitle(updated, repo) : null;
       res.json(enrichedTask);
     } catch (err) {
@@ -156,7 +156,7 @@ export function createTaskRoutes(
     }
   });
 
-  // POST /api/v1/tasks/:id/cancel — 取消任务
+  // POST /api/v1/tasks/:id/cancel — Cancel task
   router.post('/:id/cancel', (req, res) => {
     try {
       const existing = taskManager.getTask(req.params.id);
@@ -166,12 +166,12 @@ export function createTaskRoutes(
       }
       const task = taskManager.cancelTask(req.params.id);
       if (!task) {
-        res.status(400).json({ error: '无法取消该任务' });
+        res.status(400).json({ error: 'Cannot cancel this task' });
         return;
       }
       executor.cancelTask(req.params.id);
       broadcaster.broadcast('task.updated', { taskId: task.id, task }, task.id);
-      // 为子任务动态填充主任务标题
+      // Dynamically fill parent task title for subtasks
       const enrichedTask = enrichTaskTitle(task, repo);
       res.json(enrichedTask);
     } catch (err) {
@@ -179,7 +179,7 @@ export function createTaskRoutes(
     }
   });
 
-  // DELETE /api/v1/tasks/:id — 删除任务
+  // DELETE /api/v1/tasks/:id — Delete task
   router.delete('/:id', (req, res) => {
     try {
       taskManager.deleteTask(req.params.id);

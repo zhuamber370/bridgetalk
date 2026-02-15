@@ -94,7 +94,7 @@ export function AdaptiveLayout({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.2 }}
-          className="w-[40%] max-w-[400px] shrink-0 border-r border-[var(--color-border)] bg-white overflow-hidden"
+          className="w-[45%] max-w-[480px] shrink-0 border-r border-[var(--color-border)] bg-white overflow-hidden"
         >
           {inbox}
         </motion.div>
@@ -155,8 +155,8 @@ export function AdaptiveLayout({
         </motion.div>
       )}
 
-      {/* 任务列表 - 优化宽度 */}
-      <div className="w-80 shrink-0 border-r border-[var(--color-border)] bg-white overflow-hidden">
+      {/* 任务列表 - 加宽到 400px */}
+      <div className="w-[400px] shrink-0 border-r border-[var(--color-border)] bg-white overflow-hidden">
         {inbox}
       </div>
 

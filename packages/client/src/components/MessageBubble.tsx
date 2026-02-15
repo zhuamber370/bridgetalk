@@ -1,4 +1,4 @@
-import type { Message, CoordinationData, Agent } from '@openclaw/shared';
+import type { Message, CoordinationData, Agent } from '@bridgetalk/shared';
 import { useAppState } from '../lib/store';
 
 function formatTime(ts: number): string {

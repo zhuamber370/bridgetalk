@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Inbox, Plus } from 'lucide-react';
 import { useAppState, useDispatch } from '../../lib/store';
@@ -6,7 +7,7 @@ import { createTask, deleteTask } from '../../lib/api';
 import { TaskCardCompact } from './TaskCardCompact';
 import { QuickTaskInput } from './QuickTaskInput';
 import { AgentSwitcher } from '../Sidebar/AgentSwitcher';
-import type { TaskStatus, Task } from '@openclaw/shared';
+import type { TaskStatus, Task } from '@bridgetalk/shared';
 
 export interface TaskInboxPanelProps {
   /** 当前 Agent ID */
@@ -19,11 +20,11 @@ export interface TaskInboxPanelProps {
 
 type FilterTab = 'all' | 'active' | 'waiting' | 'done';
 
-const FILTER_TABS: { key: FilterTab; label: string }[] = [
-  { key: 'all', label: '全部' },
-  { key: 'active', label: '进行中' },
-  { key: 'waiting', label: '需回复' },
-  { key: 'done', label: '已完成' },
+const FILTER_TABS: { key: FilterTab; labelKey: string }[] = [
+  { key: 'all', labelKey: 'taskInbox.filterAll' },
+  { key: 'active', labelKey: 'taskInbox.filterActive' },
+  { key: 'waiting', labelKey: 'taskInbox.filterWaiting' },
+  { key: 'done', labelKey: 'taskInbox.filterDone' },
 ];
 
 function matchesFilter(status: TaskStatus, filter: FilterTab): boolean {
@@ -53,6 +54,7 @@ export function TaskInboxPanel({
   onTaskClick,
   showAgentSwitcher = false,
 }: TaskInboxPanelProps) {
+  const { t } = useTranslation();
   const { tasks, messagesByTask, agents, ui } = useAppState();
   const dispatch = useDispatch();
   const [filter, setFilter] = useState<FilterTab>('all');
@@ -94,7 +96,7 @@ export function TaskInboxPanel({
       const task = await createTask(text, agentId);
       dispatch({ type: 'ADD_TASK', task });
     } catch (err) {
-      console.error('创建任务失败:', err);
+      console.error(t('errors.createTaskFailed'), err);
       throw err;
     }
   };
@@ -105,7 +107,7 @@ export function TaskInboxPanel({
       await deleteTask(taskId);
       dispatch({ type: 'REMOVE_TASK', id: taskId });
     } catch (err) {
-      console.error('删除任务失败:', err);
+      console.error(t('errors.deleteTaskFailed'), err);
     }
   };
 
@@ -140,43 +142,57 @@ export function TaskInboxPanel({
         )}
       </div>
 
-      {/* 快速新建输入框 */}
-      <QuickTaskInput
-        onSubmit={handleCreateTask}
-        placeholder="描述您想要完成的任务..."
-      />
+      {/* 工具栏区域：快速输入 + 筛选标签 */}
+      <div className="shrink-0 bg-white border-b border-[var(--color-border)]">
+        {/* 快速新建输入框 - 紧凑版 */}
+        <QuickTaskInput
+          onSubmit={handleCreateTask}
+          placeholder={t('taskInbox.quickCreatePlaceholder')}
+        />
 
-      {/* Filter tabs - 增大间距和padding */}
-      <div className="shrink-0 flex gap-4 px-6 py-6 border-b-2 border-[var(--color-border)] bg-[var(--color-bg-secondary)] overflow-x-auto"
-      >
-        {FILTER_TABS.map((tab) => (
-          <motion.button
-            key={tab.key}
-            onClick={() => setFilter(tab.key)}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className={`shrink-0 px-8 py-4 rounded-full text-[16px] font-semibold transition-colors border-2 ${
-              filter === tab.key
-                ? 'bg-[var(--color-primary)] text-white shadow-md border-[var(--color-primary)]'
-                : 'bg-white text-[var(--color-text-secondary)] hover:bg-[var(--color-slate-100)] border-[var(--color-border)]'
-            }`}
-          >
-            {tab.label}
-            {counts[tab.key] > 0 && (
-              <span
-                className={`ml-3 ${
-                  filter === tab.key ? 'text-white/80' : 'text-[var(--color-text-muted)]'
-                }`}
-              >
-                {counts[tab.key]}
-              </span>
-            )}
-          </motion.button>
-        ))}
+        {/* Filter tabs - 紧凑型标签 */}
+        <div
+          className="flex items-center gap-2 px-4 py-3 bg-[var(--color-bg-secondary)]"
+          role="tablist"
+          aria-label={t('taskInbox.filter')}
+        >
+          <span className="text-[13px] text-[var(--color-text-muted)] font-medium shrink-0">
+            {t('taskInbox.filter')}：
+          </span>
+          {FILTER_TABS.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setFilter(tab.key)}
+              role="tab"
+              aria-selected={filter === tab.key}
+              aria-controls="task-list"
+              className={`shrink-0 px-3 py-1.5 rounded-lg text-[13px] font-medium transition-all duration-200 ${
+                filter === tab.key
+                  ? 'bg-[var(--color-primary)] text-white shadow-sm'
+                  : 'bg-white text-[var(--color-text-secondary)] hover:bg-[var(--color-slate-100)] border border-[var(--color-border)]'
+              }`}
+            >
+              {t(tab.labelKey)}
+              {counts[tab.key] > 0 && (
+                <span
+                  className={`ml-1.5 text-[12px] ${
+                    filter === tab.key ? 'text-white/80' : 'text-[var(--color-text-muted)]'
+                  }`}
+                >
+                  {counts[tab.key]}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Task list */}
-      <div className="flex-1 overflow-y-auto p-3 bg-[var(--color-bg-secondary)]"
+      <div
+        id="task-list"
+        role="tabpanel"
+        aria-label={`${t(FILTER_TABS.find((t) => t.key === filter)?.labelKey || 'taskInbox.filterAll')}${t('taskInbox.filter')}`}
+        className="flex-1 overflow-y-auto p-3 bg-[var(--color-bg-secondary)]"
       >
         <AnimatePresence mode="wait">
           {sortedTasks.length === 0 ? (
@@ -192,12 +208,12 @@ export function TaskInboxPanel({
                 <Inbox className="w-7 h-7 text-[var(--color-primary)]" />
               </div>
               <p className="text-[15px] font-semibold text-[var(--color-text-secondary)] mb-1">
-                {filter === 'all' ? '还没有任务' : '没有符合条件的任务'}
+                {filter === 'all' ? t('taskInbox.noTasks') : t('taskInbox.noFilteredTasks')}
               </p>
               <p className="text-[13px] text-[var(--color-text-muted)]">
                 {filter === 'all'
-                  ? '在上方快速创建一个吧'
-                  : '尝试切换其他筛选条件'}
+                  ? t('taskInbox.createTaskHint')
+                  : t('taskInbox.tryOtherFilter')}
               </p>
             </motion.div>
           ) : (

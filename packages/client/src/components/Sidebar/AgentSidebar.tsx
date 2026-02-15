@@ -1,10 +1,11 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, ChevronLeft, ChevronRight, Bot, Sparkles } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, Bot, Sparkles, Globe } from 'lucide-react';
 import { useAppState, useDispatch } from '../../lib/store';
 import { useNavigate } from 'react-router-dom';
 import { CreateAgentModal } from '../CreateAgentModal';
-import type { Agent } from '@openclaw/shared';
+import type { Agent } from '@bridgetalk/shared';
 
 export interface AgentSidebarProps {
   /** 是否折叠（显示图标模式）*/
@@ -28,6 +29,7 @@ export function AgentSidebar({ collapsed = false, onToggleCollapse }: AgentSideb
   const { agents, tasks, ui } = useAppState();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   // 计算每个Agent的统计数据
   const getAgentStats = (agentId: string) => {
@@ -42,18 +44,18 @@ export function AgentSidebar({ collapsed = false, onToggleCollapse }: AgentSideb
     return { unreadCount, activeCount, lastActive };
   };
 
-  // 格式化最后活跃时间
+  // Format last active time
   const formatLastActive = (timestamp: number): string => {
     const diff = Date.now() - timestamp;
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
 
-    if (minutes < 1) return '刚刚';
-    if (minutes < 60) return `${minutes}分钟前`;
-    if (hours < 24) return `${hours}小时前`;
-    if (days < 7) return `${days}天前`;
-    return '很久以前';
+    if (minutes < 1) return t('time.justNow');
+    if (minutes < 60) return t('time.minutesAgo', { count: minutes });
+    if (hours < 24) return t('time.hoursAgo', { count: hours });
+    if (days < 7) return t('time.daysAgo', { count: days });
+    return t('time.longAgo');
   };
 
   const handleSelectAgent = (agent: Agent) => {
@@ -109,7 +111,7 @@ export function AgentSidebar({ collapsed = false, onToggleCollapse }: AgentSideb
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[var(--color-sidebar-hover)] transition-colors shrink-0"
-          title={collapsed ? '展开侧边栏' : '折叠侧边栏'}
+          title={collapsed ? t('pages.agentInbox.expandSidebar') : t('pages.agentInbox.collapseSidebar')}
         >
           {collapsed ? (
             <ChevronRight className="w-5 h-5" />
@@ -122,14 +124,14 @@ export function AgentSidebar({ collapsed = false, onToggleCollapse }: AgentSideb
       {/* Agent列表 */}
       <div className="flex-1 overflow-y-auto py-2 px-2">
         {agents.length === 0 ? (
-          /* 空状态 */
+          /* Empty state */
           <div className="flex flex-col items-center justify-center h-32 px-4 text-center">
             <Sparkles className="w-8 h-8 text-[var(--color-slate-500)] mb-2" />
             {!collapsed && (
               <p className="text-xs text-[var(--color-slate-400)]">
-                还没有Agent
+                {t('pages.agentInbox.noAgents')}
                 <br />
-                点击下方按钮创建
+                {t('pages.agentInbox.createAgentHint')}
               </p>
             )}
           </div>
@@ -199,13 +201,13 @@ export function AgentSidebar({ collapsed = false, onToggleCollapse }: AgentSideb
                         )}
                       </div>
                       
-                      {/* 状态信息 */}
+                      {/* Status info */}
                       <span className={`text-[11px] truncate ${
                         isActive ? 'text-white/70' : 'text-[var(--color-slate-400)]'
                       }`}>
                         {stats.activeCount > 0
-                          ? `${stats.activeCount}个进行中`
-                          : stats.lastActive || '暂无活动'}
+                          ? t('pages.agentInbox.activeTasks', { count: stats.activeCount })
+                          : stats.lastActive || t('pages.agentInbox.noActivity')}
                       </span>
                     </motion.div>
                   )}
@@ -218,12 +220,12 @@ export function AgentSidebar({ collapsed = false, onToggleCollapse }: AgentSideb
                   </div>
                 )}
 
-                {/* 悬停提示（折叠模式）*/}
+                {/* Hover tooltip (collapsed mode) */}
                 {collapsed && hoveredAgent === agent.id && (
                   <div className="absolute left-full ml-2 px-3 py-2 bg-[var(--color-slate-800)] text-white text-xs rounded-lg whitespace-nowrap z-50 shadow-lg border border-[var(--color-slate-700)]">
                     <div className="font-medium">{agent.name}</div>
                     {stats.unreadCount > 0 && (
-                      <div className="text-[var(--color-error)]">{stats.unreadCount} 个未读</div>
+                      <div className="text-[var(--color-error)]">{t('pages.agentInbox.unreadCount', { count: stats.unreadCount })}</div>
                     )}
                   </div>
                 )}
@@ -233,7 +235,7 @@ export function AgentSidebar({ collapsed = false, onToggleCollapse }: AgentSideb
         )}
       </div>
 
-      {/* 新建Agent按钮 */}
+      {/* Create Agent Button */}
       <div className="shrink-0 p-4 border-t border-[var(--color-slate-700)]">
         <motion.button
           onClick={handleCreateAgent}
@@ -253,15 +255,57 @@ export function AgentSidebar({ collapsed = false, onToggleCollapse }: AgentSideb
                 transition={{ duration: 0.2 }}
                 className="whitespace-nowrap overflow-hidden"
               >
-                新建 Agent
+                {t('pages.agentInbox.createAgentButton')}
               </motion.span>
             )}
           </AnimatePresence>
         </motion.button>
       </div>
 
-      {/* 新建Agent模态框 */}
+      {/* Language Switcher */}
+      <div className="shrink-0 px-4 pb-4">
+        <LanguageSwitcher collapsed={collapsed} />
+      </div>
+
+      {/* Create Agent Modal */}
       <CreateAgentModal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} />
     </div>
+  );
+}
+
+// Language Switcher Component
+function LanguageSwitcher({ collapsed }: { collapsed: boolean }) {
+  const { i18n } = useTranslation();
+  const currentLang = i18n.language;
+
+  const toggleLanguage = () => {
+    const newLang = currentLang === 'zh-CN' ? 'en' : 'zh-CN';
+    i18n.changeLanguage(newLang);
+  };
+
+  return (
+    <motion.button
+      onClick={toggleLanguage}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[var(--color-slate-700)] hover:bg-[var(--color-slate-600)] text-white/80 text-[13px] font-medium transition-colors ${
+        collapsed ? 'px-2' : 'px-4'
+      }`}
+    >
+      <Globe className="w-4 h-4 shrink-0" />
+      <AnimatePresence>
+        {!collapsed && (
+          <motion.span
+            initial={{ opacity: 0, width: 0 }}
+            animate={{ opacity: 1, width: 'auto' }}
+            exit={{ opacity: 0, width: 0 }}
+            transition={{ duration: 0.2 }}
+            className="whitespace-nowrap overflow-hidden"
+          >
+            {currentLang === 'zh-CN' ? '中文' : 'English'}
+          </motion.span>
+        )}
+      </AnimatePresence>
+    </motion.button>
   );
 }

@@ -1,0 +1,40 @@
+name: Feature Request
+description: 提出新功能建议
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢你的建议！请详细描述你想要的功能。
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 遇到的问题
+      description: 这个功能能解决什么问题？
+      placeholder: 例如：无法同时查看多个任务的对话历史
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: 期望的解决方案
+      description: 你希望如何实现这个功能？
+      placeholder: 例如：添加一个分屏模式，可以并排显示两个任务
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 其他方案
+      description: 你考虑过其他替代方案吗？
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: 参与贡献
+      options:
+        - label: 我愿意提交 PR 实现这个功能

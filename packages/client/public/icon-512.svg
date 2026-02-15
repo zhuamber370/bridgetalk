@@ -1,4 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="80" fill="#6366f1"/>
-  <text x="256" y="310" font-family="Arial" font-size="200" font-weight="bold" fill="white" text-anchor="middle">OC</text>
+  <!-- 纯黑背景 -->
+  <rect width="512" height="512" rx="86" fill="#000000"/>
+
+  <!-- 极简桥梁 - 三条白线 -->
+  <!-- 左桥墩 -->
+  <rect x="128" y="320" width="10" height="85" fill="#ffffff"/>
+  <!-- 右桥墩 -->
+  <rect x="374" y="320" width="10" height="85" fill="#ffffff"/>
+
+  <!-- 桥面 -->
+  <rect x="128" y="310" width="256" height="10" fill="#ffffff"/>
+
+  <!-- 桥拱（抛物线效果用路径）-->
+  <path d="M 138 310 Q 256 214 374 310" stroke="#ffffff" stroke-width="10" fill="none"/>
+
+  <!-- BT 字母（极简无衬线）-->
+  <text x="256" y="180" font-family="Arial, sans-serif" font-size="85" font-weight="700" fill="#ffffff" text-anchor="middle" letter-spacing="5">BT</text>
 </svg>

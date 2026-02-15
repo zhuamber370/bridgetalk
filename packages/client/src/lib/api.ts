@@ -1,4 +1,4 @@
-import type { Task, Message, Agent, CreateAgentRequest } from '@openclaw/shared';
+import type { Task, Message, Agent, CreateAgentRequest } from '@bridgetalk/shared';
 
 const BASE = '/api/v1';
 

@@ -1,6 +1,6 @@
 import type Database from 'better-sqlite3';
-import type { Task, Message, TaskStatus } from '@openclaw/shared';
-import { nowMs } from '@openclaw/shared';
+import type { Task, Message, TaskStatus } from '@bridgetalk/shared';
+import { nowMs } from '@bridgetalk/shared';
 
 // ─── Row → Model Converters ───
 

@@ -1,4 +1,4 @@
-import type { Agent } from '@openclaw/shared';
+import type { Agent } from '@bridgetalk/shared';
 
 interface AgentCardProps {
   agent: Agent;

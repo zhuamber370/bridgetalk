@@ -1,7 +1,15 @@
 {
-  "name": "@openclaw/server",
-  "version": "0.1.0",
+  "name": "@bridgetalk/server",
+  "version": "0.2.0",
   "private": true,
+  "description": "BridgeTalk backend - Express API server with SQLite storage",
+  "author": "zhuamber370",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zhuamber370/bridgetalk.git",
+    "directory": "packages/server"
+  },
   "type": "module",
   "main": "./src/index.ts",
   "scripts": {
@@ -10,7 +18,7 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "@openclaw/shared": "workspace:*",
+    "@bridgetalk/shared": "workspace:*",
     "better-sqlite3": "^11.0.0",
     "cors": "^2.8.5",
     "dotenv": "^17.3.1",

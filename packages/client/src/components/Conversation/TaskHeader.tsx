@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ChevronLeft, 
@@ -11,7 +12,7 @@ import {
   X
 } from 'lucide-react';
 import { TaskStatusBadge } from '../TaskStatusBadge';
-import type { Task } from '@openclaw/shared';
+import type { Task } from '@bridgetalk/shared';
 
 export interface TaskHeaderProps {
   task: Task;
@@ -42,6 +43,7 @@ export function TaskHeader({
   onCancel,
   onArchive,
 }: TaskHeaderProps) {
+  const { t } = useTranslation();
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState(task.title);
   const [showMenu, setShowMenu] = useState(false);
@@ -101,6 +103,20 @@ export function TaskHeader({
     });
   };
 
+  // Close menu on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setShowMenu(false);
+      }
+    };
+
+    if (showMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showMenu]);
+
   return (
     <div className="shrink-0 border-b border-[var(--color-border)] bg-white">
       <div className="flex items-center gap-3 px-4 py-3">
@@ -159,7 +175,7 @@ export function TaskHeader({
                   onClick={() => setEditingTitle(true)}
                   whileHover={{ color: 'var(--color-primary)' }}
                   className="text-[17px] font-bold text-[var(--color-text)] truncate cursor-pointer transition-colors flex items-center gap-2"
-                  title="点击编辑标题"
+                  title={t('pages.taskDetail.clickToEdit')}
                 >
                   {task.title}
                   <Edit3 className="w-4 h-4 opacity-0 hover:opacity-100 transition-opacity text-[var(--color-text-muted)]" />
@@ -169,7 +185,7 @@ export function TaskHeader({
               <div className="flex items-center gap-3 mt-0.5"
               >
                 <span className="text-[12px] text-[var(--color-text-muted)]">
-                  更新于 {formatTime(task.updatedAt)}
+                  {t('pages.taskDetail.updateAt', { time: formatTime(task.updatedAt) })}
                 </span>
                 
                 <motion.button
@@ -177,7 +193,7 @@ export function TaskHeader({
                   whileHover={{ scale: 1.05 }}
                   className="text-[11px] text-[var(--color-primary)] hover:underline"
                 >
-                  {showDetails ? '收起' : '详情'}
+                  {showDetails ? t('common.collapse') : t('common.details')}
                 </motion.button>
               </div>
             </div>
@@ -221,7 +237,7 @@ export function TaskHeader({
                     className="w-full px-4 py-2.5 text-left text-[13px] text-[var(--color-text)] flex items-center gap-2.5"
                   >
                     <XCircle className="w-4 h-4 text-[var(--color-text-muted)]" />
-                    取消任务
+                    {t('common.cancelTask')}
                   </motion.button>
                 )}
                 {onArchive && (
@@ -234,7 +250,7 @@ export function TaskHeader({
                     className="w-full px-4 py-2.5 text-left text-[13px] text-[var(--color-text)] flex items-center gap-2.5"
                   >
                     <Archive className="w-4 h-4 text-[var(--color-text-muted)]" />
-                    归档
+                    {t('common.archive')}
                   </motion.button>
                 )}
                 {onDelete && (
@@ -242,7 +258,7 @@ export function TaskHeader({
                     <div className="border-t border-[var(--color-border)] my-1" />
                     <motion.button
                       onClick={() => {
-                        if (confirm('确定删除这个任务吗？此操作不可撤销。')) {
+                        if (confirm(t('common.confirm'))) {
                           onDelete();
                         }
                         setShowMenu(false);
@@ -251,7 +267,7 @@ export function TaskHeader({
                       className="w-full px-4 py-2.5 text-left text-[13px] text-[var(--color-error)] flex items-center gap-2.5"
                     >
                       <Trash2 className="w-4 h-4" />
-                      删除任务
+                      {t('common.deleteTask')}
                     </motion.button>
                   </>
                 )}
@@ -274,16 +290,16 @@ export function TaskHeader({
             <div className="px-4 py-3 grid grid-cols-2 gap-3 text-[12px]"
             >
               <div>
-                <span className="text-[var(--color-text-muted)]">任务ID: </span>
+                <span className="text-[var(--color-text-muted)]">{t('pages.taskDetail.taskId')}: </span>
                 <span className="text-[var(--color-text-secondary)] font-mono">{task.id.slice(-8)}</span>
               </div>
               <div>
-                <span className="text-[var(--color-text-muted)]">创建于: </span>
+                <span className="text-[var(--color-text-muted)]">{t('pages.taskDetail.createdAt')}: </span>
                 <span className="text-[var(--color-text-secondary)]">{formatTime(task.createdAt)}</span>
               </div>
               {task.parentTaskId && (
                 <div className="col-span-2">
-                  <span className="text-[var(--color-text-muted)]">父任务: </span>
+                  <span className="text-[var(--color-text-muted)]">{t('pages.taskDetail.parentTask')}: </span>
                   <span className="text-[var(--color-delegated)]">{task.parentTaskId.slice(-8)}</span>
                 </div>
               )}

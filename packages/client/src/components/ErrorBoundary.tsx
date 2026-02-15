@@ -1,6 +1,7 @@
 import { Component, type ReactNode } from 'react';
+import { withTranslation, WithTranslation } from 'react-i18next';
 
-interface Props {
+interface Props extends WithTranslation {
   children: ReactNode;
 }
 
@@ -9,7 +10,7 @@ interface State {
   error: Error | null;
 }
 
-export class ErrorBoundary extends Component<Props, State> {
+class ErrorBoundaryClass extends Component<Props, State> {
   state: State = { hasError: false, error: null };
 
   static getDerivedStateFromError(error: Error) {
@@ -21,16 +22,18 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   render() {
+    const { t } = this.props;
+
     if (this.state.hasError) {
       return (
         <div className="flex flex-col items-center justify-center h-screen p-6 text-center">
-          <h2 className="text-lg font-semibold text-red-600 mb-2">出现错误</h2>
+          <h2 className="text-lg font-semibold text-red-600 mb-2">{t('common.error')}</h2>
           <p className="text-sm text-gray-600 mb-4">{this.state.error?.message}</p>
           <button
             onClick={() => this.setState({ hasError: false, error: null })}
             className="px-4 py-2 bg-indigo-500 text-white rounded-lg text-sm hover:bg-indigo-600"
           >
-            重试
+            {t('common.retry')}
           </button>
         </div>
       );
@@ -38,3 +41,5 @@ export class ErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
+
+export const ErrorBoundary = withTranslation()(ErrorBoundaryClass);

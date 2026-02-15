@@ -1,4 +1,5 @@
-import type { TaskStatus } from '@openclaw/shared';
+import type { TaskStatus } from '@bridgetalk/shared';
+import { useTranslation } from 'react-i18next';
 import { 
   Loader2, 
   CheckCircle2, 
@@ -11,44 +12,44 @@ import {
 const statusConfig: Record<
   TaskStatus,
   {
-    label: string;
+    labelKey: string;
     bgColor: string;
     textColor: string;
     icon: React.ComponentType<{ className?: string }>;
   }
 > = {
   pending: {
-    label: '等待中',
+    labelKey: 'status.pending',
     bgColor: 'bg-[var(--color-slate-100)]',
     textColor: 'text-[var(--color-slate-600)]',
     icon: Clock,
   },
   running: {
-    label: '执行中',
+    labelKey: 'status.running',
     bgColor: 'bg-[var(--color-info-light)]',
     textColor: 'text-[var(--color-info-dark)]',
     icon: Loader2,
   },
   completed: {
-    label: '已完成',
+    labelKey: 'status.completed',
     bgColor: 'bg-[var(--color-success-light)]',
     textColor: 'text-[var(--color-success-dark)]',
     icon: CheckCircle2,
   },
   failed: {
-    label: '失败',
+    labelKey: 'status.failed',
     bgColor: 'bg-[var(--color-error-light)]',
     textColor: 'text-[var(--color-error-dark)]',
     icon: XCircle,
   },
   waiting: {
-    label: '等待回复',
+    labelKey: 'status.waiting',
     bgColor: 'bg-[var(--color-warning-light)]',
     textColor: 'text-[var(--color-warning-dark)]',
     icon: AlertCircle,
   },
   cancelled: {
-    label: '已取消',
+    labelKey: 'status.cancelled',
     bgColor: 'bg-[var(--color-slate-100)]',
     textColor: 'text-[var(--color-slate-400)]',
     icon: MinusCircle,
@@ -66,6 +67,7 @@ export function TaskStatusBadge({
   showIcon = true,
   size = 'sm' 
 }: TaskStatusBadgeProps) {
+  const { t } = useTranslation();
   const cfg = statusConfig[status] ?? statusConfig.pending;
   const Icon = cfg.icon;
 
@@ -88,7 +90,7 @@ export function TaskStatusBadge({
       ) : showIcon ? (
         <Icon className={iconSizes[size]} />
       ) : null}
-      <span>{cfg.label}</span>
+      <span>{t(cfg.labelKey)}</span>
     </span>
   );
 }

@@ -1,11 +1,12 @@
-import { generateId, nowMs } from '@openclaw/shared';
-import type { Message, CoordinationData, Task } from '@openclaw/shared';
+import { generateId, nowMs } from '@bridgetalk/shared';
+import type { Message, CoordinationData, Task } from '@bridgetalk/shared';
 import type { Adapter } from '../adapters/adapter.js';
 import { Repository } from '../db/repository.js';
 import { EventBroadcaster } from './event-broadcaster.js';
+import { logger } from '../lib/logger.js';
 
 export class TaskExecutor {
-  // 🆕 跟踪 sessionKey → subTaskId 的映射
+  // 🆕 Track sessionKey → subTaskId mapping
   private sessionToTask = new Map<string, string>();  // sessionKey → taskId
 
   constructor(
@@ -38,7 +39,7 @@ export class TaskExecutor {
     const [, agentId, parentId] = match;
 
     // 🆕 调试日志
-    console.log(`[Global] sessionKey: ${sessionKey}, state: ${payload.state}, agentId: ${agentId}`);
+    logger.debug(`[Global] sessionKey: ${sessionKey}, state: ${payload.state}, agentId: ${agentId}`);
 
     // 如果是 main agent，跳过（已经有专门的监听器）
     if (agentId === 'main' || agentId === parentId) return;
@@ -52,7 +53,7 @@ export class TaskExecutor {
 
     if (!existingTaskId) {
       // 第一次检测到这个 sessionKey，创建子任务
-      console.log(`[TaskExecutor] 检测到新的子 agent 活动: ${agentId} (session: ${sessionKey})`);
+      logger.debug(`[TaskExecutor] 检测到新的子 agent 活动: ${agentId} (session: ${sessionKey})`);
       this.createSubTaskFromSession(sessionKey, agentId, payload);
       return;
     }
@@ -82,7 +83,7 @@ export class TaskExecutor {
           this.broadcaster.broadcast('task.updated', { taskId: existingTaskId, task: updated }, existingTaskId);
         }
 
-        console.log(`[TaskExecutor] 子任务完成: ${existingTaskId} (${agentId})`);
+        logger.debug(`[TaskExecutor] 子任务完成: ${existingTaskId} (${agentId})`);
       }
     }
   }
@@ -156,7 +157,7 @@ export class TaskExecutor {
 
       // 🆕 立即执行子任务（后台异步执行，不阻塞主任务）
       this.executeSubTask(subTask.id, coordData.summary).catch(err => {
-        console.error(`子任务 ${subTask.id} 执行失败:`, err);
+        logger.error(`SubTask ${subTask.id} execution failed:`, err);
       });
     }
 
@@ -196,7 +197,7 @@ export class TaskExecutor {
         }
       }
     } catch (err) {
-      this.handleAgentError(task.id, `执行失败: ${(err as Error).message || '执行出错'}`);
+      this.handleAgentError(task.id, `Execution failed: ${(err as Error).message || 'Execution error'}`);
     }
   }
 
@@ -231,16 +232,16 @@ export class TaskExecutor {
         }
       }
     } catch (err) {
-      this.handleAgentError(taskId, `执行失败: ${(err as Error).message || '执行出错'}`);
+      this.handleAgentError(taskId, `Execution failed: ${(err as Error).message || 'Execution error'}`);
     }
   }
 
-  // 执行子任务（与 executeTask 类似，但不创建 user 消息）
+  // Execute subtask (similar to executeTask, but without creating user message)
   private async executeSubTask(taskId: string, content: string): Promise<void> {
     const task = this.repo.getTask(taskId);
     if (!task) return;
 
-    // 子任务已经在创建时设置为 running，这里直接执行
+      // Subtask is already set to running at creation, execute directly here
     try {
       for await (const event of this.adapter.execute(task, content)) {
         if (event.type === 'result') {
@@ -255,11 +256,11 @@ export class TaskExecutor {
         }
       }
     } catch (err) {
-      this.handleAgentError(task.id, `执行失败: ${(err as Error).message || '执行出错'}`);
+      this.handleAgentError(task.id, `Execution failed: ${(err as Error).message || 'Execution error'}`);
     }
   }
 
-  // 🆕 从 session 创建子任务
+  // 🆕 Create subtask from session
   private createSubTaskFromSession(sessionKey: string, agentId: string, initialPayload: any): void {
     // 🆕 查找当前 running 的 main agent 任务作为父任务
     const tasksResult = this.repo.listTasks();
@@ -268,16 +269,16 @@ export class TaskExecutor {
     );
     const parentTask = runningMainTasks.length > 0 ? runningMainTasks[0] : null;
 
-    // 🆕 子任务标题：直接使用主任务标题（动态跟随）
-    const title = parentTask ? parentTask.title : '协调任务';
+    // 🆕 Subtask title: directly use parent task title (dynamic follow)
+    const title = parentTask ? parentTask.title : 'Coordination Task';
 
-    // 创建子任务
+    // Create subtask
     const subTask: Task = {
       id: generateId(),
       agentId,
       parentTaskId: parentTask?.id, // 🆕 设置父任务 ID
       title,
-      titleLocked: false, // 允许标题动态跟随主任务
+      titleLocked: false, // Allow title to dynamically follow parent task
       status: 'running',
       createdAt: nowMs(),
       updatedAt: nowMs(),
@@ -289,7 +290,7 @@ export class TaskExecutor {
     // 记录 sessionKey → taskId 映射
     this.sessionToTask.set(sessionKey, subTask.id);
 
-    console.log(`[TaskExecutor] 创建子任务: ${subTask.id} (${agentName}, parent: ${parentTask?.id || 'none'}, session: ${sessionKey.substring(0, 20)}...)`);
+    logger.debug(`[TaskExecutor] Created subtask: ${subTask.id} (${agentId}, parent: ${parentTask?.id || 'none'}, session: ${sessionKey.substring(0, 20)}...)`);
   }
 
   // 辅助方法：提取文本内容

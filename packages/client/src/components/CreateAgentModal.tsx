@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, 
@@ -29,6 +30,7 @@ export function CreateAgentModal({ isOpen, onClose }: CreateAgentModalProps) {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   // Load available models and reset form when modal opens
   useEffect(() => {
@@ -49,11 +51,11 @@ export function CreateAgentModal({ isOpen, onClose }: CreateAgentModalProps) {
     const name = formName.trim();
 
     if (!id || !name) {
-      setError('ID 和名称不能为空');
+      setError(t('createAgent.errorRequired'));
       return;
     }
     if (!/^[a-z0-9][a-z0-9-]*$/.test(id)) {
-      setError('ID 只允许小写字母、数字和短横线');
+      setError(t('createAgent.errorInvalidId'));
       return;
     }
 
@@ -121,8 +123,8 @@ export function CreateAgentModal({ isOpen, onClose }: CreateAgentModalProps) {
                   <Bot className="w-6 h-6 text-[var(--color-primary)]" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-[var(--color-text)]">新建 Agent</h2>
-                  <p className="text-[14px] text-[var(--color-text-muted)]">创建您的AI助手</p>
+                  <h2 className="text-xl font-bold text-[var(--color-text)]">{t('createAgent.title')}</h2>
+                  <p className="text-[14px] text-[var(--color-text-muted)]">{t('createAgent.subtitle')}</p>
                 </div>
               </div>
               
@@ -141,31 +143,31 @@ export function CreateAgentModal({ isOpen, onClose }: CreateAgentModalProps) {
               {/* ID */}
               <div>
                 <label className="block text-[15px] font-semibold text-[var(--color-text)] mb-3">
-                  Agent ID *
+                  {t('createAgent.agentId')} *
                 </label>
                 <input
                   type="text"
                   value={formId}
                   onChange={(e) => setFormId(e.target.value.toLowerCase())}
-                  placeholder="例如: travel-assistant"
+                  placeholder={t('createAgent.agentIdPlaceholder')}
                   autoFocus
                   className="w-full rounded-xl border border-[var(--color-border)] px-5 py-4 text-[16px] text-[var(--color-text)] outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary-light)] transition-all bg-[var(--color-bg-secondary)]"
                 />
                 <p className="text-[13px] mt-2 text-[var(--color-text-muted)]">
-                  小写字母、数字和短横线，用于URL
+                  {t('createAgent.agentIdHint')}
                 </p>
               </div>
 
               {/* 名称 */}
               <div>
                 <label className="block text-[15px] font-semibold text-[var(--color-text)] mb-3">
-                  显示名称 *
+                  {t('createAgent.displayName')} *
                 </label>
                 <input
                   type="text"
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
-                  placeholder="例如: 旅行助手"
+                  placeholder={t('createAgent.displayNamePlaceholder')}
                   className="w-full rounded-xl border border-[var(--color-border)] px-5 py-4 text-[16px] text-[var(--color-text)] outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary-light)] transition-all bg-[var(--color-bg-secondary)]"
                 />
               </div>
@@ -173,12 +175,12 @@ export function CreateAgentModal({ isOpen, onClose }: CreateAgentModalProps) {
               {/* 描述 */}
               <div>
                 <label className="block text-[15px] font-semibold text-[var(--color-text)] mb-3">
-                  描述（可选）
+                  {t('createAgent.description')}
                 </label>
                 <textarea
                   value={formDesc}
                   onChange={(e) => setFormDesc(e.target.value)}
-                  placeholder="这个Agent擅长什么..."
+                  placeholder={t('createAgent.descriptionPlaceholder')}
                   rows={3}
                   className="w-full rounded-xl border border-[var(--color-border)] px-5 py-4 text-[16px] text-[var(--color-text)] outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary-light)] transition-all bg-[var(--color-bg-secondary)] resize-none"
                 />
@@ -187,7 +189,7 @@ export function CreateAgentModal({ isOpen, onClose }: CreateAgentModalProps) {
               {/* 模型 */}
               <div className="pb-2">
                 <label className="block text-[15px] font-semibold text-[var(--color-text)] mb-3">
-                  AI 模型
+                  {t('createAgent.model')}
                 </label>
                 <div className="relative">
                   <select
@@ -195,11 +197,11 @@ export function CreateAgentModal({ isOpen, onClose }: CreateAgentModalProps) {
                     onChange={(e) => setFormModel(e.target.value)}
                     className="w-full rounded-xl border border-[var(--color-border)] px-5 py-4 text-[16px] text-[var(--color-text)] outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary-light)] transition-all bg-[var(--color-bg-secondary)] appearance-none cursor-pointer"
                   >
-                    <option value="">使用默认模型</option>
+                    <option value="">{t('createAgent.defaultModel')}</option>
                     {availableModels.map((m) => (
                       <option key={m.id} value={m.id}>
                         {m.alias ? `${m.alias} (${m.id})` : m.id}
-                        {m.isDefault ? ' - 默认' : ''}
+                        {m.isDefault ? ` - ${t('createAgent.default')}` : ''}
                       </option>
                     ))}
                   </select>
@@ -229,7 +231,7 @@ export function CreateAgentModal({ isOpen, onClose }: CreateAgentModalProps) {
             <div className="flex gap-4 p-6 pt-4 border-t border-[var(--color-border)] bg-white">
               <motion.button
                 onClick={() => {
-                  // 清空表单数据
+                  // Clear form data
                   setFormId('');
                   setFormName('');
                   setFormDesc('');
@@ -241,7 +243,7 @@ export function CreateAgentModal({ isOpen, onClose }: CreateAgentModalProps) {
                 whileTap={{ scale: 0.98 }}
                 className="flex-1 px-6 py-4 rounded-xl text-[16px] font-semibold text-[var(--color-text-secondary)] bg-[var(--color-bg-secondary)] hover:bg-[var(--color-slate-200)] transition-colors"
               >
-                取消
+                {t('common.cancel')}
               </motion.button>
               
               <motion.button
@@ -254,12 +256,12 @@ export function CreateAgentModal({ isOpen, onClose }: CreateAgentModalProps) {
                 {creating ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    创建中...
+                    {t('common.creating')}
                   </>
                 ) : (
                   <>
                     <Sparkles className="w-5 h-5" />
-                    创建 Agent
+                    {t('createAgent.title')}
                   </>
                 )}
               </motion.button>

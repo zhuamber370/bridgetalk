@@ -1,4 +1,4 @@
-import type { Task, ExecutionEvent, HealthStatus } from '@openclaw/shared';
+import type { Task, ExecutionEvent, HealthStatus } from '@bridgetalk/shared';
 
 export interface Adapter {
   id: string;

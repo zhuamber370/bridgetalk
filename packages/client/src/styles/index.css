@@ -1,78 +1,83 @@
+/* ============================================
+   字体加载 - Plus Jakarta Sans
+   ============================================ */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
 @import "tailwindcss";
 
 :root {
   /* ============================================
-     主色调 - 深邃紫蓝色
+     主色调 - 纯黑（极端简约）
      ============================================ */
-  --color-primary: #6366f1;
-  --color-primary-hover: #4f46e5;
-  --color-primary-light: #e0e7ff;
-  --color-primary-subtle: #f5f7ff;
-  --color-primary-dark: #4338ca;
+  --color-primary: #000000;        /* 纯黑 */
+  --color-primary-hover: #171717;  /* 极深灰 Neutral 900 */
+  --color-primary-light: #f5f5f5;  /* 极浅灰 Neutral 100 */
+  --color-primary-subtle: #fafafa; /* 接近白 Neutral 50 */
+  --color-primary-dark: #000000;   /* 纯黑 */
 
   /* ============================================
-     语义化灰度 - Slate色系
+     语义化灰度 - Neutral 系（纯粹黑白灰）
      ============================================ */
-  --color-slate-50: #f8fafc;
-  --color-slate-100: #f1f5f9;
-  --color-slate-200: #e2e8f0;
-  --color-slate-300: #cbd5e1;
-  --color-slate-400: #94a3b8;
-  --color-slate-500: #64748b;
-  --color-slate-600: #475569;
-  --color-slate-700: #334155;
-  --color-slate-800: #1e293b;
-  --color-slate-900: #0f172a;
+  --color-slate-50: #fafafa;    /* Neutral 50 - 接近纯白 */
+  --color-slate-100: #f5f5f5;   /* Neutral 100 */
+  --color-slate-200: #e5e5e5;   /* Neutral 200 */
+  --color-slate-300: #d4d4d4;   /* Neutral 300 */
+  --color-slate-400: #a3a3a3;   /* Neutral 400 */
+  --color-slate-500: #737373;   /* Neutral 500 */
+  --color-slate-600: #525252;   /* Neutral 600 */
+  --color-slate-700: #404040;   /* Neutral 700 */
+  --color-slate-800: #262626;   /* Neutral 800 */
+  --color-slate-900: #171717;   /* Neutral 900 - 接近纯黑 */
 
   /* ============================================
-     状态色 - 降低饱和度
+     状态色 - 纯灰度（极端简约）
      ============================================ */
-  --color-success: #10b981;
-  --color-success-light: #d1fae5;
-  --color-success-dark: #059669;
-  
-  --color-warning: #f59e0b;
-  --color-warning-light: #fef3c7;
-  --color-warning-dark: #d97706;
-  
-  --color-error: #ef4444;
-  --color-error-light: #fee2e2;
-  --color-error-dark: #dc2626;
-  
-  --color-info: #3b82f6;
-  --color-info-light: #dbeafe;
-  --color-info-dark: #2563eb;
+  --color-success: #171717;    /* 深灰 - 用灰度表示成功 */
+  --color-success-light: #f5f5f5;
+  --color-success-dark: #000000;
+
+  --color-warning: #737373;    /* 中灰 - 用灰度表示警告 */
+  --color-warning-light: #f5f5f5;
+  --color-warning-dark: #525252;
+
+  --color-error: #404040;      /* 深灰 - 用灰度表示错误 */
+  --color-error-light: #e5e5e5;
+  --color-error-dark: #171717;
+
+  --color-info: #525252;       /* 中灰 - 用灰度表示信息 */
+  --color-info-light: #f5f5f5;
+  --color-info-dark: #262626;
 
   /* ============================================
-     特殊色 - 委派任务使用Teal
+     特殊色 - 委派任务（黑白）
      ============================================ */
-  --color-delegated: #14b8a6;
-  --color-delegated-light: #ccfbf1;
-  --color-delegated-dark: #0d9488;
+  --color-delegated: #262626;      /* 深灰 */
+  --color-delegated-light: #f5f5f5;
+  --color-delegated-dark: #171717;
 
   /* ============================================
-     背景色
+     背景色 - 纯黑白
      ============================================ */
-  --color-bg: #ffffff;
-  --color-bg-secondary: #f8fafc;
-  --color-bg-tertiary: #f1f5f9;
-  --color-sidebar: #1e293b;
-  --color-sidebar-hover: #334155;
+  --color-bg: #ffffff;           /* 纯白 */
+  --color-bg-secondary: #fafafa; /* 接近白 */
+  --color-bg-tertiary: #f5f5f5;  /* 极浅灰 */
+  --color-sidebar: #000000;      /* 纯黑 */
+  --color-sidebar-hover: #171717; /* 极深灰 */
 
   /* ============================================
-     边框与分隔线
+     边框与分隔线 - 极细极浅
      ============================================ */
-  --color-border: #e2e8f0;
-  --color-border-light: #f1f5f9;
-  --color-border-dark: #cbd5e1;
+  --color-border: #e5e5e5;       /* Neutral 200 - 极浅边框 */
+  --color-border-light: #f5f5f5; /* Neutral 100 */
+  --color-border-dark: #d4d4d4;  /* Neutral 300 */
 
   /* ============================================
-     文字色
+     文字色 - 纯黑白对比
      ============================================ */
-  --color-text: #0f172a;
-  --color-text-secondary: #64748b;
-  --color-text-muted: #94a3b8;
-  --color-text-inverse: #ffffff;
+  --color-text: #000000;         /* 纯黑文字 */
+  --color-text-secondary: #525252; /* Neutral 600 - 次要文字 */
+  --color-text-muted: #a3a3a3;   /* Neutral 400 - 弱化文字 */
+  --color-text-inverse: #ffffff; /* 纯白文字 */
 
   /* ============================================
      圆角系统（4px基础）
@@ -152,11 +157,18 @@
 
 html, body, #root {
   height: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: var(--color-bg);
   color: var(--color-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'cv11', 'ss01';
+  font-variant-ligatures: common-ligatures;
+}
+
+/* 等宽字体（用于代码显示）*/
+code, pre, .font-mono {
+  font-family: 'IBM Plex Mono', 'SF Mono', Monaco, 'Cascadia Code', monospace;
 }
 
 /* Prevent overscroll bounce on mobile */
@@ -379,4 +391,44 @@ textarea:focus-visible {
 ::selection {
   background: var(--color-primary-light);
   color: var(--color-primary-dark);
+}
+
+/* ============================================
+   动画偏好设置支持
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================================
+   性能优化 - GPU 加速
+   ============================================ */
+.will-change-transform {
+  will-change: transform;
+}
+
+.will-change-opacity {
+  will-change: opacity;
+}
+
+/* 仅在动画/过渡时应用 */
+.animate-fade-in-up,
+.animate-slide-in-right,
+.animate-slide-out-left {
+  will-change: transform, opacity;
+}
+
+/* 动画结束后移除 will-change */
+@media (prefers-reduced-motion: no-preference) {
+  .animate-fade-in-up,
+  .animate-slide-in-right,
+  .animate-slide-out-left {
+    animation-fill-mode: forwards;
+  }
 }

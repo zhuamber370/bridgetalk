@@ -1,6 +1,41 @@
 {
-  "name": "agent-inbox-channel",
-  "private": true,
+  "name": "bridgetalk",
+  "version": "0.2.0",
+  "private": false,
+  "description": "Bridge the gap between you and AI agents - A minimal inbox for AI collaboration",
+  "author": "zhuamber370",
+  "license": "MIT",
+  "homepage": "https://github.com/zhuamber370/bridgetalk#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zhuamber370/bridgetalk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/zhuamber370/bridgetalk/issues"
+  },
+  "keywords": [
+    "ai",
+    "agent",
+    "inbox",
+    "chat",
+    "task-management",
+    "pwa",
+    "openclaw",
+    "minimalist",
+    "black-and-white",
+    "typescript",
+    "react",
+    "express",
+    "sqlite",
+    "websocket",
+    "local-first",
+    "privacy",
+    "multi-agent"
+  ],
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
   "pnpm": {
     "onlyBuiltDependencies": [
       "better-sqlite3",

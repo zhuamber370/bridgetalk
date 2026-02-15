@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { App } from './App';
+import './i18n'; // Import i18n configuration
 
 // Capture unhandled errors and show them on screen for debugging
 window.onerror = (msg, src, line, col, err) => {

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Info } from 'lucide-react';
@@ -8,7 +9,7 @@ import { MessageItem, MessageList } from './MessageItem';
 import { TaskHeader } from './TaskHeader';
 import { MessageInput } from './MessageInput';
 import { SubTaskCollapse } from '../SubTaskCollapse';
-import type { Task, Message, CoordinationData } from '@openclaw/shared';
+import type { Task, Message, CoordinationData } from '@bridgetalk/shared';
 
 export interface ConversationPanelProps {
   /** 任务 ID */
@@ -27,6 +28,7 @@ export interface ConversationPanelProps {
  * 4. 改进的视觉层次
  */
 export function ConversationPanel({ taskId, onBack }: ConversationPanelProps) {
+  const { t } = useTranslation();
   const { tasks, messagesByTask, agents } = useAppState();
   const dispatch = useDispatch();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -81,7 +83,7 @@ export function ConversationPanel({ taskId, onBack }: ConversationPanelProps) {
     try {
       await sendMessage(taskId, text);
     } catch (err) {
-      console.error('发送消息失败:', err);
+      console.error(t('errors.sendMessageFailed'), err);
       throw err;
     }
   };
@@ -93,7 +95,7 @@ export function ConversationPanel({ taskId, onBack }: ConversationPanelProps) {
       const updated = await updateTask(taskId, { title: newTitle });
       dispatch({ type: 'UPDATE_TASK', task: updated });
     } catch (err) {
-      console.error('修改标题失败:', err);
+      console.error(t('pages.taskDetail.updateTitleFailed'), err);
     }
   };
 
@@ -104,7 +106,7 @@ export function ConversationPanel({ taskId, onBack }: ConversationPanelProps) {
       dispatch({ type: 'REMOVE_TASK', id: taskId });
       onBack?.();
     } catch (err) {
-      console.error('删除任务失败:', err);
+      console.error(t('errors.deleteTaskFailed'), err);
     }
   };
 
@@ -119,7 +121,7 @@ export function ConversationPanel({ taskId, onBack }: ConversationPanelProps) {
           <div className="w-16 h-16 rounded-full bg-[var(--color-slate-200)] flex items-center justify-center mx-auto mb-4">
             <Info className="w-8 h-8 text-[var(--color-slate-400)]" />
           </div>
-          <p className="text-[var(--color-text-secondary)]">任务不存在</p>
+          <p className="text-[var(--color-text-secondary)]">{t('pages.taskDetail.taskNotFound')}</p>
         </motion.div>
       </div>
     );
@@ -151,14 +153,14 @@ export function ConversationPanel({ taskId, onBack }: ConversationPanelProps) {
               >
                 <Info className="w-4 h-4" />
                 <span>
-                  这是由 <strong>{parentAgent?.name || '未知'}</strong> 委派的任务
+                  {t('pages.taskDetail.delegatedBy', { agentName: parentAgent?.name || t('common.unknown') })}
                 </span>
               </div>
               <Link
                 to={`/agents/${parentTask.agentId}/tasks/${parentTask.id}`}
                 className="inline-flex items-center text-[13px] text-[var(--color-delegated)] hover:underline font-medium"
               >
-                查看主任务 →
+                {t('pages.taskDetail.viewParentTask')} →
               </Link>
             </div>
           </motion.div>
@@ -192,10 +194,10 @@ export function ConversationPanel({ taskId, onBack }: ConversationPanelProps) {
               </svg>
             </div>
             <p className="text-[var(--color-text-secondary)] font-medium mb-1">
-              还没有消息
+              {t('pages.taskDetail.noMessages')}
             </p>
             <p className="text-[13px] text-[var(--color-text-muted)]">
-              发送第一条消息开始对话
+              {t('pages.taskDetail.sendFirstMessage')}
             </p>
           </motion.div>
         ) : (
@@ -245,7 +247,7 @@ export function ConversationPanel({ taskId, onBack }: ConversationPanelProps) {
       {/* Input */}
       <MessageInput
         onSubmit={handleSendMessage}
-        placeholder="继续对话..."
+        placeholder={t('pages.taskDetail.continueConversation')}
       />
     </div>
   );

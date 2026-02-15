@@ -1,0 +1,127 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "cancel": "Cancel",
+    "create": "Create",
+    "creating": "Creating...",
+    "save": "Save",
+    "delete": "Delete",
+    "confirmDelete": "Confirm delete?",
+    "deleteTask": "Delete Task",
+    "cancelTask": "Cancel Task",
+    "archive": "Archive",
+    "confirm": "Are you sure you want to delete this task? This action cannot be undone.",
+    "retry": "Retry",
+    "error": "An error occurred",
+    "expand": "Expand",
+    "collapse": "Collapse",
+    "details": "Details",
+    "back": "Back",
+    "close": "Close",
+    "edit": "Edit",
+    "unknown": "Unknown"
+  },
+  "time": {
+    "justNow": "Just now",
+    "minutesAgo": "{{count}} minutes ago",
+    "hoursAgo": "{{count}} hours ago",
+    "daysAgo": "{{count}} days ago",
+    "longAgo": "Long ago"
+  },
+  "status": {
+    "pending": "Pending",
+    "running": "Running",
+    "completed": "Completed",
+    "failed": "Failed",
+    "waiting": "Waiting for reply",
+    "cancelled": "Cancelled",
+    "active": "Active",
+    "needReply": "Need reply",
+    "done": "Done"
+  },
+  "pages": {
+    "welcome": {
+      "title": "Welcome to OpenClaw",
+      "subtitle": "Create your first AI Agent to start your intelligent task management journey",
+      "createAgent": "Create Agent"
+    },
+    "agentInbox": {
+      "expandSidebar": "Expand sidebar",
+      "collapseSidebar": "Collapse sidebar",
+      "home": "Home",
+      "selectAgent": "Select Agent",
+      "create": "Create",
+      "current": "Current",
+      "language": "Language",
+      "noAgents": "No agents yet",
+      "createAgentHint": "Click the button below to create one",
+      "createAgentButton": "Create Agent",
+      "activeTasks": "{{count}} active",
+      "noActivity": "No recent activity",
+      "unreadCount": "{{count}} unread"
+    },
+    "taskDetail": {
+      "loading": "Loading...",
+      "continueConversation": "Continue conversation...",
+      "delegatedBy": "This task is delegated by {{agentName}}",
+      "viewParentTask": "View parent task",
+      "noMessages": "No messages yet",
+      "sendFirstMessage": "Send your first message to start the conversation",
+      "taskNotFound": "Task not found",
+      "updateAt": "Updated at {{time}}",
+      "taskId": "Task ID",
+      "createdAt": "Created at",
+      "parentTask": "Parent task",
+      "clickToEdit": "Click to edit title",
+      "sendFailed": "Failed to send message",
+      "updateTitleFailed": "Failed to update title",
+      "deleteFailed": "Failed to delete task"
+    }
+  },
+  "taskInbox": {
+    "quickCreatePlaceholder": "Quick create task...",
+    "filter": "Filter",
+    "filterAll": "All",
+    "filterActive": "Active",
+    "filterWaiting": "Need reply",
+    "filterDone": "Done",
+    "noTasks": "No tasks yet",
+    "createTaskHint": "Create one quickly above",
+    "noFilteredTasks": "No tasks match the filter",
+    "tryOtherFilter": "Try switching to another filter",
+    "delegatedTask": "Delegated task",
+    "delegatedBy": "Delegated by {{agentName}}",
+    "parentTask": "Parent task",
+    "workProcess": "Work in progress",
+    "viewFullConversation": "View full conversation"
+  },
+  "createAgent": {
+    "title": "Create Agent",
+    "subtitle": "Create your AI assistant",
+    "agentId": "Agent ID",
+    "agentIdPlaceholder": "e.g., travel-assistant",
+    "agentIdHint": "Lowercase letters, numbers, and hyphens only, used in URL",
+    "displayName": "Display Name",
+    "displayNamePlaceholder": "e.g., Travel Assistant",
+    "description": "Description (optional)",
+    "descriptionPlaceholder": "What is this Agent good at...",
+    "model": "AI Model",
+    "defaultModel": "Use default model",
+    "default": "Default",
+    "errorRequired": "ID and name are required",
+    "errorInvalidId": "ID can only contain lowercase letters, numbers, and hyphens",
+    "errorCreateFailed": "Failed to create Agent"
+  },
+  "message": {
+    "inputPlaceholder": "Type a message...",
+    "shiftEnterToNewLine": "Shift + Enter for new line",
+    "noMessages": "No messages yet",
+    "send": "Send message",
+    "messageContent": "Message content"
+  },
+  "errors": {
+    "createTaskFailed": "Failed to create task",
+    "deleteTaskFailed": "Failed to delete task",
+    "sendMessageFailed": "Failed to send message"
+  }
+}
