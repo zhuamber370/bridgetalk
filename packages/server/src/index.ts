@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 // 从项目根目录加载 .env（packages/server/src/ → 上三级）
 dotenv.config({ path: resolve(__dirname, '../../../.env') });
-import express from 'express';
+import express, { type Express } from 'express';
 import cors from 'cors';
 import { initDatabase } from './db/schema.js';
 import { Repository } from './db/repository.js';
@@ -18,7 +18,7 @@ import { createAgentRoutes } from './routes/agents.js';
 import { createEventRoutes } from './routes/events.js';
 import { createOpenClawRoutes } from './routes/openclaw.js';
 
-const app = express();
+const app: Express = express();
 const PORT = process.env.PORT || 3001;
 
 // ─── Database ───

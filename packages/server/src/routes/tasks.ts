@@ -3,8 +3,19 @@ import type { TaskManager } from '../services/task-manager.js';
 import type { TaskExecutor } from '../services/task-executor.js';
 import type { EventBroadcaster } from '../services/event-broadcaster.js';
 import type { Repository } from '../db/repository.js';
-import type { CreateTaskRequest, SendMessageRequest, Message } from '@openclaw/shared';
+import type { CreateTaskRequest, SendMessageRequest, Message, Task } from '@openclaw/shared';
 import { generateId, nowMs } from '@openclaw/shared';
+
+// 辅助函数：为子任务动态填充主任务标题
+function enrichTaskTitle(task: Task, repo: Repository): Task {
+  if (task.parentTaskId && !task.titleLocked) {
+    const parentTask = repo.getTask(task.parentTaskId);
+    if (parentTask) {
+      return { ...task, title: parentTask.title };
+    }
+  }
+  return task;
+}
 
 export function createTaskRoutes(
   taskManager: TaskManager,
@@ -43,7 +54,9 @@ export function createTaskRoutes(
         console.error(`[executor] task ${task.id} failed:`, err);
       });
 
-      res.status(201).json(task);
+      // 为子任务动态填充主任务标题
+      const enrichedTask = enrichTaskTitle(task, repo);
+      res.status(201).json(enrichedTask);
     } catch (err) {
       res.status(500).json({ error: (err as Error).message });
     }
@@ -58,7 +71,9 @@ export function createTaskRoutes(
         limit: limit ? Number(limit) : undefined,
         agentId: agentId as string | undefined,
       });
-      res.json(result.items);
+      // 为子任务动态填充主任务标题
+      const enrichedTasks = result.items.map(task => enrichTaskTitle(task, repo));
+      res.json(enrichedTasks);
     } catch (err) {
       res.status(500).json({ error: (err as Error).message });
     }
@@ -72,7 +87,9 @@ export function createTaskRoutes(
         res.status(404).json({ error: '任务不存在' });
         return;
       }
-      res.json(task);
+      // 为子任务动态填充主任务标题
+      const enrichedTask = enrichTaskTitle(task, repo);
+      res.json(enrichedTask);
     } catch (err) {
       res.status(500).json({ error: (err as Error).message });
     }
@@ -131,7 +148,9 @@ export function createTaskRoutes(
       if (updated) {
         broadcaster.broadcast('task.updated', { taskId: updated.id, task: updated }, updated.id);
       }
-      res.json(updated);
+      // 为子任务动态填充主任务标题
+      const enrichedTask = updated ? enrichTaskTitle(updated, repo) : null;
+      res.json(enrichedTask);
     } catch (err) {
       res.status(500).json({ error: (err as Error).message });
     }
@@ -152,7 +171,9 @@ export function createTaskRoutes(
       }
       executor.cancelTask(req.params.id);
       broadcaster.broadcast('task.updated', { taskId: task.id, task }, task.id);
-      res.json(task);
+      // 为子任务动态填充主任务标题
+      const enrichedTask = enrichTaskTitle(task, repo);
+      res.json(enrichedTask);
     } catch (err) {
       res.status(400).json({ error: (err as Error).message });
     }

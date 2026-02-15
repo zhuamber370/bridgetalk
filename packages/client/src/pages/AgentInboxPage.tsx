@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppState, useDispatch } from '../lib/store';
 import { createTask, listTasks, deleteTask, getAgent } from '../lib/api';
-import { TaskItem } from '../components/TaskItem';
+import { TaskCard } from '../components/TaskCard';
 import type { Agent, TaskStatus } from '@openclaw/shared';
 
 type FilterTab = 'all' | 'active' | 'waiting' | 'done';
@@ -179,18 +179,22 @@ export function AgentInboxPage() {
             </p>
           </div>
         ) : (
-          sortedTasks.map((task) => (
-            <TaskItem
-              key={task.id}
-              task={task}
-              lastMessage={getLastMessage(task.id)}
-              onClick={() => navigate(`/agents/${agentId}/tasks/${task.id}`)}
-              onDelete={async () => {
-                await deleteTask(task.id);
-                dispatch({ type: 'REMOVE_TASK', id: task.id });
-              }}
-            />
-          ))
+          <div className="p-3">
+            {sortedTasks.map((task) => (
+              <TaskCard
+                key={task.id}
+                task={task}
+                onDelete={async (taskId) => {
+                  try {
+                    await deleteTask(taskId);
+                    dispatch({ type: 'REMOVE_TASK', id: taskId });
+                  } catch (err) {
+                    console.error('删除任务失败:', err);
+                  }
+                }}
+              />
+            ))}
+          </div>
         )}
       </div>
     </div>
