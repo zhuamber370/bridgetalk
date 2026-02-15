@@ -8,6 +8,7 @@ function rowToTask(row: Record<string, unknown>): Task {
   return {
     id: row.id as string,
     agentId: row.agent_id as string,
+    parentTaskId: row.parent_task_id as string | undefined,
     title: row.title as string,
     titleLocked: (row.title_locked as number) === 1,
     status: row.status as TaskStatus,
@@ -22,6 +23,8 @@ function rowToMessage(row: Record<string, unknown>): Message {
     id: row.id as string,
     taskId: row.task_id as string,
     senderType: row.sender_type as Message['senderType'],
+    senderAgentId: row.sender_agent_id as string | undefined,
+    messageType: (row.message_type as Message['messageType']) || 'chat',
     content: row.content as string,
     timestamp: row.timestamp as number,
   };
@@ -36,10 +39,10 @@ export class Repository {
 
   createTask(task: Task): Task {
     this.db.prepare(`
-      INSERT INTO tasks (id, agent_id, title, status, created_at, updated_at, completed_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO tasks (id, agent_id, parent_task_id, title, status, created_at, updated_at, completed_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
-      task.id, task.agentId, task.title, task.status,
+      task.id, task.agentId, task.parentTaskId ?? null, task.title, task.status,
       task.createdAt, task.updatedAt, task.completedAt ?? null,
     );
     return task;
@@ -102,10 +105,12 @@ export class Repository {
 
   createMessage(message: Message): Message {
     this.db.prepare(`
-      INSERT INTO messages (id, task_id, sender_type, content, timestamp)
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO messages (id, task_id, sender_type, sender_agent_id, message_type, content, timestamp)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `).run(
       message.id, message.taskId, message.senderType,
+      message.senderAgentId ?? null,
+      message.messageType ?? 'chat',
       message.content, message.timestamp,
     );
     return message;

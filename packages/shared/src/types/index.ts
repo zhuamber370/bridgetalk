@@ -23,6 +23,7 @@ export type TaskStatus = 'pending' | 'running' | 'completed' | 'failed' | 'waiti
 export interface Task {
   id: string;
   agentId: string;       // 关联的 Agent
+  parentTaskId?: string; // 如果是子任务，指向主任务 ID
   title: string;
   titleLocked: boolean;
   status: TaskStatus;
@@ -33,14 +34,28 @@ export interface Task {
 
 // ─── Message ───
 
-export type SenderType = 'user' | 'agent';
+export type SenderType = 'user' | 'agent' | 'system';
+
+export type MessageType = 'chat' | 'coordination';
 
 export interface Message {
   id: string;
   taskId: string;
   senderType: SenderType;
+  senderAgentId?: string;      // 发送者 agent ID（如 'main', 'writer'）
+  messageType?: MessageType;    // 消息类型（默认 'chat'）
   content: string;
   timestamp: number;
+}
+
+// 协调数据结构（存储在 coordination 消息的 content 中，JSON 格式）
+export interface CoordinationData {
+  type: 'team_created' | 'task_delegated' | 'agent_reply' | 'result_merged';
+  from: string;           // 发起方 agent ID
+  to?: string;            // 接收方 agent ID（可选）
+  summary: string;        // 简短描述
+  detail?: string;        // 详细内容（可选）
+  subTaskId?: string;     // 关联的子任务 ID（task_delegated 时使用）
 }
 
 // ─── API Types ───
@@ -79,9 +94,9 @@ export interface SSEEvent {
 // ─── Adapter Types ───
 
 export interface ExecutionEvent {
-  type: 'result' | 'error';
+  type: 'result' | 'error' | 'coordination';  // 新增 'coordination'
   timestamp: number;
-  data: { message: string; [key: string]: unknown };
+  data: { message: string; [key: string]: unknown } | CoordinationData;
 }
 
 export interface HealthStatus {
