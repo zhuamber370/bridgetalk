@@ -10,6 +10,7 @@ export function initDatabase(dbPath = 'agent_channel_v2.db'): Database.Database 
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       description TEXT,
+      model TEXT,
       created_at INTEGER NOT NULL,
       updated_at INTEGER NOT NULL
     );
@@ -39,6 +40,13 @@ export function initDatabase(dbPath = 'agent_channel_v2.db'): Database.Database 
 
     CREATE INDEX IF NOT EXISTS idx_messages_task ON messages(task_id, timestamp);
   `);
+
+  // Migration: add model column for existing DBs
+  try {
+    db.exec('ALTER TABLE agents ADD COLUMN model TEXT');
+  } catch {
+    // column already exists, ignore
+  }
 
   // Seed default agent if not exists
   const existing = db.prepare('SELECT id FROM agents WHERE id = ?').get('main');

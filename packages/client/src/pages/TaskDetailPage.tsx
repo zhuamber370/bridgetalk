@@ -4,7 +4,7 @@ import { useAppState, useDispatch } from '../lib/store';
 import { listMessages, sendMessage, getTask, updateTask } from '../lib/api';
 import { MessageBubble } from '../components/MessageBubble';
 import { TaskStatusBadge } from '../components/TaskStatusBadge';
-import type { Task } from '@openclaw/shared';
+import type { Task, Message } from '@openclaw/shared';
 
 export function TaskDetailPage() {
   const { agentId, taskId: id } = useParams<{ agentId: string; taskId: string }>();
@@ -22,22 +22,28 @@ export function TaskDetailPage() {
   const task = tasks.find((t) => t.id === id);
   const messages = id ? messagesByTask[id] ?? [] : [];
 
-  // Load task if not in store
+  // Load task + poll status every 3s
   useEffect(() => {
     if (!id) return;
-    if (!task) {
+    const fetchTask = () =>
       getTask(id)
         .then((t: Task) => dispatch({ type: 'ADD_TASK', task: t }))
         .catch(console.error);
-    }
-  }, [id, task, dispatch]);
+    fetchTask();
+    const timer = setInterval(fetchTask, 3000);
+    return () => clearInterval(timer);
+  }, [id, dispatch]);
 
-  // Load messages
+  // Load messages + poll every 3s as SSE fallback
   useEffect(() => {
     if (!id) return;
-    listMessages(id)
-      .then((msgs) => dispatch({ type: 'SET_MESSAGES', taskId: id, messages: msgs }))
-      .catch(console.error);
+    const fetchMessages = () =>
+      listMessages(id)
+        .then((msgs) => dispatch({ type: 'SET_MESSAGES', taskId: id, messages: msgs }))
+        .catch(console.error);
+    fetchMessages();
+    const timer = setInterval(fetchMessages, 3000);
+    return () => clearInterval(timer);
   }, [id, dispatch]);
 
   // Auto-scroll to bottom
@@ -57,9 +63,20 @@ export function TaskDetailPage() {
     const text = input.trim();
     if (!text || sending || !id) return;
     setSending(true);
+    setInput('');
+
+    // 乐观更新：立即显示用户消息
+    const optimisticMsg: Message = {
+      id: `tmp_${Date.now()}`,
+      taskId: id,
+      senderType: 'user',
+      content: text,
+      timestamp: Date.now(),
+    };
+    dispatch({ type: 'ADD_MESSAGE', message: optimisticMsg });
+
     try {
       await sendMessage(id, text);
-      setInput('');
     } catch (err) {
       console.error('发送消息失败:', err);
     } finally {

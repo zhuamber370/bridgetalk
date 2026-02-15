@@ -49,12 +49,16 @@ export function AgentInboxPage() {
     }
   }, [agentId, agents, dispatch]);
 
-  // Load tasks for this agent
+  // Load tasks for this agent + poll every 5s as SSE fallback
   useEffect(() => {
     if (!agentId) return;
-    listTasks(agentId)
-      .then((data) => dispatch({ type: 'SET_TASKS', tasks: data }))
-      .catch(console.error);
+    const fetchTasks = () =>
+      listTasks(agentId)
+        .then((data) => dispatch({ type: 'SET_TASKS', tasks: data }))
+        .catch(console.error);
+    fetchTasks();
+    const timer = setInterval(fetchTasks, 5000);
+    return () => clearInterval(timer);
   }, [agentId, dispatch]);
 
   // Filter tasks by current agent

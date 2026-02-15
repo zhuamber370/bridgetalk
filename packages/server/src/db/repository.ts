@@ -32,6 +32,7 @@ function rowToAgent(row: Record<string, unknown>): Agent {
     id: row.id as string,
     name: row.name as string,
     description: row.description as string | undefined,
+    model: row.model as string | undefined,
     createdAt: row.created_at as number,
     updatedAt: row.updated_at as number,
   };
@@ -46,10 +47,10 @@ export class Repository {
 
   createAgent(agent: Agent): Agent {
     this.db.prepare(`
-      INSERT INTO agents (id, name, description, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO agents (id, name, description, model, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?)
     `).run(
-      agent.id, agent.name, agent.description ?? null,
+      agent.id, agent.name, agent.description ?? null, agent.model ?? null,
       agent.createdAt, agent.updatedAt,
     );
     return agent;
@@ -65,12 +66,13 @@ export class Repository {
     return (rows as Record<string, unknown>[]).map(rowToAgent);
   }
 
-  updateAgent(id: string, patches: Partial<Pick<Agent, 'name' | 'description'>>): Agent | null {
+  updateAgent(id: string, patches: Partial<Pick<Agent, 'name' | 'description' | 'model'>>): Agent | null {
     const sets: string[] = [];
     const values: unknown[] = [];
 
     if (patches.name !== undefined) { sets.push('name = ?'); values.push(patches.name); }
     if (patches.description !== undefined) { sets.push('description = ?'); values.push(patches.description); }
+    if (patches.model !== undefined) { sets.push('model = ?'); values.push(patches.model); }
 
     if (sets.length === 0) return this.getAgent(id);
 
@@ -83,6 +85,11 @@ export class Repository {
   }
 
   deleteAgent(id: string): void {
+    // 先删除该 Agent 下所有任务的消息，再删任务，最后删 Agent
+    this.db.prepare(`
+      DELETE FROM messages WHERE task_id IN (SELECT id FROM tasks WHERE agent_id = ?)
+    `).run(id);
+    this.db.prepare('DELETE FROM tasks WHERE agent_id = ?').run(id);
     this.db.prepare('DELETE FROM agents WHERE id = ?').run(id);
   }
 

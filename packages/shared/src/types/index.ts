@@ -4,6 +4,7 @@ export interface Agent {
   id: string;          // 如 'main', 'travel', 'code-review'
   name: string;        // 显示名称
   description?: string;
+  model?: string;      // 绑定的模型，如 'openai-codex/gpt-5.2'
   createdAt: number;
   updatedAt: number;
 }
@@ -12,6 +13,7 @@ export interface CreateAgentRequest {
   id: string;
   name: string;
   description?: string;
+  model?: string;
 }
 
 // ─── Task ───

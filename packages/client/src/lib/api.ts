@@ -39,22 +39,16 @@ export async function updateAgent(id: string, patches: { name?: string; descript
   });
 }
 
-export async function deleteAgent(id: string): Promise<void> {
-  return request<void>(`${BASE}/agents/${id}`, { method: 'DELETE' });
-}
-
 // ─── OpenClaw API ───
 
-export interface OpenClawAgentInfo {
+export interface OpenClawModelInfo {
   id: string;
-  name: string;
-  workspace?: string;
-  model?: string;
+  alias?: string;
   isDefault?: boolean;
 }
 
-export async function listOpenClawAgents(): Promise<OpenClawAgentInfo[]> {
-  return request<OpenClawAgentInfo[]>(`${BASE}/openclaw/agents`);
+export async function listOpenClawModels(): Promise<OpenClawModelInfo[]> {
+  return request<OpenClawModelInfo[]>(`${BASE}/openclaw/models`);
 }
 
 // ─── Task API ───
