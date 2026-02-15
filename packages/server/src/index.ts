@@ -16,6 +16,7 @@ import { OpenClawAdapter } from './adapters/openclaw-adapter.js';
 import { createTaskRoutes } from './routes/tasks.js';
 import { createAgentRoutes } from './routes/agents.js';
 import { createEventRoutes } from './routes/events.js';
+import { createOpenClawRoutes } from './routes/openclaw.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -41,6 +42,7 @@ app.get('/health', (_req, res) => {
 });
 
 app.use('/api/v1/agents', createAgentRoutes(repo));
+app.use('/api/v1/openclaw', createOpenClawRoutes());
 app.use('/api/v1/tasks', createTaskRoutes(taskManager, executor, repo, broadcaster));
 app.use('/api/v1', createEventRoutes(broadcaster));
 

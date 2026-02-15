@@ -43,6 +43,20 @@ export async function deleteAgent(id: string): Promise<void> {
   return request<void>(`${BASE}/agents/${id}`, { method: 'DELETE' });
 }
 
+// ─── OpenClaw API ───
+
+export interface OpenClawAgentInfo {
+  id: string;
+  name: string;
+  workspace?: string;
+  model?: string;
+  isDefault?: boolean;
+}
+
+export async function listOpenClawAgents(): Promise<OpenClawAgentInfo[]> {
+  return request<OpenClawAgentInfo[]>(`${BASE}/openclaw/agents`);
+}
+
 // ─── Task API ───
 
 export async function createTask(content: string, agentId?: string): Promise<Task> {

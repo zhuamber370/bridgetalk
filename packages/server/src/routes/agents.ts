@@ -2,6 +2,7 @@ import { Router } from 'express';
 import type { Repository } from '../db/repository.js';
 import type { CreateAgentRequest } from '@openclaw/shared';
 import { nowMs } from '@openclaw/shared';
+import { registerAgent } from '../services/openclaw-config.js';
 
 export function createAgentRoutes(repo: Repository): Router {
   const router = Router();
@@ -29,13 +30,22 @@ export function createAgentRoutes(repo: Repository): Router {
         return;
       }
       const now = nowMs();
+      const agentName = body.name.trim();
       const agent = repo.createAgent({
         id: body.id,
-        name: body.name.trim(),
+        name: agentName,
         description: body.description?.trim(),
         createdAt: now,
         updatedAt: now,
       });
+
+      // 同步注册到 OpenClaw 配置
+      try {
+        registerAgent(body.id, agentName);
+      } catch (err) {
+        console.error(`[openclaw] 注册 agent ${body.id} 失败:`, err);
+      }
+
       res.status(201).json(agent);
     } catch (err) {
       res.status(500).json({ error: (err as Error).message });
