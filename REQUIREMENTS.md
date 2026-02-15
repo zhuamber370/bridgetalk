@@ -121,37 +121,27 @@ AgentListPage → AgentInboxPage → TaskDetailPage
 
 ## 3. 数据模型
 
-### 3.1 三张表、三个实体
+### 3.1 两张表、三个实体
 
 数据库文件：`data/agent_channel_v2.db`（SQLite + WAL 模式）
 
-#### Agent（智能体）
+> **注意**：Agent 不存储在数据库中，以 `~/.openclaw/openclaw.json` 为唯一权威来源。DB 只有 `tasks` 和 `messages` 两张表。
+
+#### Agent（智能体）— 存储于 openclaw.json
 
 ```typescript
 interface Agent {
   id: string;          // 用户定义，如 'main', 'travel'（小写字母/数字/短横线）
   name: string;        // 显示名称
-  description?: string;
   model?: string;      // 绑定的模型 ID（如 'openai-codex/gpt-5.3-codex'）
-  createdAt: number;   // 时间戳 ms
+  createdAt: number;   // 时间戳 ms（API 返回时动态生成）
   updatedAt: number;
 }
 ```
 
-```sql
-CREATE TABLE agents (
-  id TEXT PRIMARY KEY,
-  name TEXT NOT NULL,
-  description TEXT,
-  model TEXT,
-  created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL
-);
-```
-
-- **系统默认**：启动时自动创建 `main`（通用助手）
+- **单一来源**：`~/.openclaw/openclaw.json` 是 Agent 配置的唯一存储位置，不写入 DB
+- **系统默认**：`main` 作为默认通用助手
 - **ID 校验**：`/^[a-z0-9][a-z0-9-]*$/`
-- **单一来源**：Agent 列表以 `~/.openclaw/openclaw.json` 为权威来源，DB 自动同步
 
 #### Task（任务）
 
@@ -296,20 +286,20 @@ agent-inbox-channel/
 
 | 方法 | 端点 | 描述 | 请求 | 响应 |
 |------|------|------|------|------|
-| POST | `/api/v1/agents` | 创建 Agent | `{id, name, description?, model?}` | `201 Agent` |
+| POST | `/api/v1/agents` | 创建 Agent | `{id, name, model?}` | `201 Agent` |
 | GET | `/api/v1/agents` | 列出 Agents | — | `Agent[]` |
 | GET | `/api/v1/agents/:id` | 获取 Agent | — | `Agent` |
-| PATCH | `/api/v1/agents/:id` | 更新 Agent | `{name?, description?, model?}` | `Agent` |
+
+> 注意：没有 PATCH / DELETE 端点。Agent 一旦创建不可通过 API 修改或删除。
 
 **创建 Agent 副作用**：
-1. 写入本地 DB
+1. 检查 `openclaw.json` 中是否已存在同 ID 的 Agent
 2. 注册到 `~/.openclaw/openclaw.json`（agents.list + allowAgents + agentToAgent.allow）
 3. 创建 workspace 和 agent 目录
 
 **列出 Agents 逻辑**：
-1. 读取 `openclaw.json` 中主 agent 的 `allowAgents` 白名单
-2. 以白名单为权威来源，自动同步缺失的 agent 到 DB
-3. 返回白名单内的 agents（从 DB 读取完整字段）
+1. 直接从 `openclaw.json` 读取 main + `allowAgents` 白名单
+2. 转换为 `Agent` 对象返回（不经过 DB）
 
 ### 5.2 Task API
 
@@ -457,31 +447,29 @@ Adapter **不做**以下事情（与旧需求的重要区别）：
 
 ### 7.1 单一来源原则
 
-Agent 列表的权威来源是 `~/.openclaw/openclaw.json` 中主 agent 的 `subagents.allowAgents` 白名单。
+Agent 配置的唯一存储位置是 `~/.openclaw/openclaw.json`，**不写入数据库**。
 
 ```
-openclaw.json (allowAgents) ──→ GET /api/v1/agents ──→ 自动同步到 DB ──→ 前端显示
+openclaw.json (allowAgents) ──→ GET /api/v1/agents ──→ 前端显示
 ```
 
 - 只显示白名单内的 Agent（main 自身 + allowAgents 列出的 ID）
-- DB 中存在但白名单中没有的 Agent 不会显示
-- 白名单中存在但 DB 中没有的 Agent 自动创建 DB 记录
+- Agent API 直接读写 openclaw.json，不经过 DB
 
 ### 7.2 创建 Agent
 
 通过 UI 创建 Agent 时：
-1. 验证 ID 格式和唯一性
-2. 写入 DB（`agents` 表）
+1. 验证 ID 格式（`/^[a-z0-9][a-z0-9-]*$/`）
+2. 检查 `openclaw.json` 中是否已存在同 ID
 3. 调用 `registerAgent()` 注册到 `openclaw.json`：
    - 添加到 `agents.list`（含 workspace、agentDir、model）
    - 添加到 `tools.agentToAgent.allow`
    - 添加到主 agent 的 `subagents.allowAgents`
 4. 创建目录：`workspace-{id}/`、`agents/{id}/agent/`、`agents/{id}/sessions/`
 
-### 7.3 不支持删除
+### 7.3 不支持修改和删除
 
-UI 不提供删除 Agent 功能。原因：
-- Agent 配置存在于 `openclaw.json`，从 DB 删除会在下次刷新时被自动重建
+UI 不提供修改或删除 Agent 功能。
 - 设计原则：「可以适当创建，但不修改、删除 OpenClaw 本身存在的东西」
 
 ---
@@ -500,7 +488,7 @@ interface AppState {
 }
 
 // Actions
-| SET_AGENTS / ADD_AGENT / UPDATE_AGENT / REMOVE_AGENT
+| SET_AGENTS / ADD_AGENT / REMOVE_AGENT
 | SET_TASKS / ADD_TASK / UPDATE_TASK / REMOVE_TASK
 | SET_MESSAGES / ADD_MESSAGE
 ```
@@ -563,18 +551,18 @@ SSE 在某些网络环境下不稳定，前端加入轮询作为备选：
 
 ### 9.1 数据库初始化（db/schema.ts）
 
-- 创建 `agents`、`tasks`、`messages` 三张表
+- 创建 `tasks`、`messages` 两张表
 - WAL 模式 + 外键约束
-- 自动迁移：`ALTER TABLE agents ADD COLUMN model TEXT`（兼容旧 DB）
-- 种子数据：插入 `main` Agent
+- Agent 不存储在 DB 中（由 openclaw.json 管理）
 
 ### 9.2 数据仓储（db/repository.ts）
 
 | 方法 | 说明 |
 |------|------|
-| `createAgent / getAgent / listAgents / updateAgent / deleteAgent` | Agent CRUD（deleteAgent 级联删除消息→任务→agent） |
 | `createTask / getTask / listTasks / updateTask / deleteTask` | Task CRUD |
 | `createMessage / listMessages` | Message 读写 |
+
+> 注意：没有 Agent 相关方法。Agent 的读写由 `openclaw-config.ts` 直接操作 openclaw.json。
 
 ### 9.3 任务管理器（services/task-manager.ts）
 

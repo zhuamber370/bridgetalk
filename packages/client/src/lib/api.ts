@@ -32,13 +32,6 @@ export async function getAgent(id: string): Promise<Agent> {
   return request<Agent>(`${BASE}/agents/${id}`);
 }
 
-export async function updateAgent(id: string, patches: { name?: string; description?: string }): Promise<Agent> {
-  return request<Agent>(`${BASE}/agents/${id}`, {
-    method: 'PATCH',
-    body: JSON.stringify(patches),
-  });
-}
-
 // ─── OpenClaw API ───
 
 export interface OpenClawModelInfo {

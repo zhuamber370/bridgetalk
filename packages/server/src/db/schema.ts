@@ -6,15 +6,6 @@ export function initDatabase(dbPath = 'agent_channel_v2.db'): Database.Database 
   db.pragma('foreign_keys = ON');
 
   db.exec(`
-    CREATE TABLE IF NOT EXISTS agents (
-      id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      description TEXT,
-      model TEXT,
-      created_at INTEGER NOT NULL,
-      updated_at INTEGER NOT NULL
-    );
-
     CREATE TABLE IF NOT EXISTS tasks (
       id TEXT PRIMARY KEY,
       agent_id TEXT NOT NULL DEFAULT 'main',
@@ -40,21 +31,6 @@ export function initDatabase(dbPath = 'agent_channel_v2.db'): Database.Database 
 
     CREATE INDEX IF NOT EXISTS idx_messages_task ON messages(task_id, timestamp);
   `);
-
-  // Migration: add model column for existing DBs
-  try {
-    db.exec('ALTER TABLE agents ADD COLUMN model TEXT');
-  } catch {
-    // column already exists, ignore
-  }
-
-  // Seed default agent if not exists
-  const existing = db.prepare('SELECT id FROM agents WHERE id = ?').get('main');
-  if (!existing) {
-    const now = Date.now();
-    db.prepare('INSERT INTO agents (id, name, description, created_at, updated_at) VALUES (?, ?, ?, ?, ?)')
-      .run('main', '默认 Agent', '系统默认的通用 Agent', now, now);
-  }
 
   return db;
 }

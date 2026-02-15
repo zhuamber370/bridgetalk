@@ -41,7 +41,7 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: Date.now() });
 });
 
-app.use('/api/v1/agents', createAgentRoutes(repo));
+app.use('/api/v1/agents', createAgentRoutes());
 app.use('/api/v1/openclaw', createOpenClawRoutes());
 app.use('/api/v1/tasks', createTaskRoutes(taskManager, executor, repo, broadcaster));
 app.use('/api/v1', createEventRoutes(broadcaster));

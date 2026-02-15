@@ -1,13 +1,24 @@
 import { Router } from 'express';
-import type { Repository } from '../db/repository.js';
-import type { CreateAgentRequest } from '@openclaw/shared';
+import type { CreateAgentRequest, Agent } from '@openclaw/shared';
 import { nowMs } from '@openclaw/shared';
 import { registerAgent, listConfiguredAgents } from '../services/openclaw-config.js';
+import type { OpenClawAgentConfig } from '../services/openclaw-config.js';
 
-export function createAgentRoutes(repo: Repository): Router {
+function configToAgent(ca: OpenClawAgentConfig): Agent {
+  const now = nowMs();
+  return {
+    id: ca.id,
+    name: ca.name || ca.id,
+    model: ca.model,
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+export function createAgentRoutes(): Router {
   const router = Router();
 
-  // POST /api/v1/agents — create agent
+  // POST /api/v1/agents — create agent（只写 openclaw.json）
   router.post('/', (req, res) => {
     try {
       const body = req.body as CreateAgentRequest;
@@ -19,63 +30,42 @@ export function createAgentRoutes(repo: Repository): Router {
         res.status(400).json({ error: 'Agent 名称不能为空' });
         return;
       }
-      // Validate ID format: lowercase letters, numbers, hyphens only
       if (!/^[a-z0-9][a-z0-9-]*$/.test(body.id)) {
         res.status(400).json({ error: 'Agent ID 只允许小写字母、数字和短横线，且不能以短横线开头' });
         return;
       }
-      // Check duplicate
-      if (repo.getAgent(body.id)) {
+
+      // 检查 openclaw.json 中是否已存在
+      const existing = listConfiguredAgents().find((a) => a.id === body.id);
+      if (existing) {
         res.status(409).json({ error: 'Agent ID 已存在' });
         return;
       }
-      const now = nowMs();
+
       const agentName = body.name.trim();
       const agentModel = body.model?.trim() || undefined;
-      const agent = repo.createAgent({
+
+      // 注册到 openclaw.json
+      registerAgent(body.id, agentName, agentModel);
+
+      // 返回 Agent 对象
+      const agent: Agent = {
         id: body.id,
         name: agentName,
-        description: body.description?.trim(),
         model: agentModel,
-        createdAt: now,
-        updatedAt: now,
-      });
-
-      // 同步注册到 OpenClaw 配置
-      try {
-        registerAgent(body.id, agentName, agentModel);
-      } catch (err) {
-        console.error(`[openclaw] 注册 agent ${body.id} 失败:`, err);
-      }
-
+        createdAt: nowMs(),
+        updatedAt: nowMs(),
+      };
       res.status(201).json(agent);
     } catch (err) {
       res.status(500).json({ error: (err as Error).message });
     }
   });
 
-  // GET /api/v1/agents — list agents（以 openclaw.json 为唯一来源，自动同步到 DB）
+  // GET /api/v1/agents — list agents（直接从 openclaw.json 读取）
   router.get('/', (_req, res) => {
     try {
-      const configAgents = listConfiguredAgents();
-      const now = nowMs();
-
-      // 确保每个 openclaw agent 在 DB 中有对应记录
-      for (const ca of configAgents) {
-        if (!repo.getAgent(ca.id)) {
-          repo.createAgent({
-            id: ca.id,
-            name: ca.name || ca.id,
-            model: ca.model,
-            createdAt: now,
-            updatedAt: now,
-          });
-        }
-      }
-
-      // 只返回 openclaw.json 中存在的 agents（从 DB 读取以获取完整字段）
-      const allowedIds = new Set(configAgents.map((a) => a.id));
-      const agents = repo.listAgents().filter((a) => allowedIds.has(a.id));
+      const agents = listConfiguredAgents().map(configToAgent);
       res.json(agents);
     } catch (err) {
       res.status(500).json({ error: (err as Error).message });
@@ -85,32 +75,12 @@ export function createAgentRoutes(repo: Repository): Router {
   // GET /api/v1/agents/:id — get agent
   router.get('/:id', (req, res) => {
     try {
-      const agent = repo.getAgent(req.params.id);
-      if (!agent) {
+      const ca = listConfiguredAgents().find((a) => a.id === req.params.id);
+      if (!ca) {
         res.status(404).json({ error: 'Agent 不存在' });
         return;
       }
-      res.json(agent);
-    } catch (err) {
-      res.status(500).json({ error: (err as Error).message });
-    }
-  });
-
-  // PATCH /api/v1/agents/:id — update agent
-  router.patch('/:id', (req, res) => {
-    try {
-      const existing = repo.getAgent(req.params.id);
-      if (!existing) {
-        res.status(404).json({ error: 'Agent 不存在' });
-        return;
-      }
-      const { name, description, model } = req.body as { name?: string; description?: string; model?: string };
-      const patches: Record<string, string | undefined> = {};
-      if (name !== undefined) patches.name = name.trim();
-      if (description !== undefined) patches.description = description.trim();
-      if (model !== undefined) patches.model = model.trim();
-      const updated = repo.updateAgent(req.params.id, patches);
-      res.json(updated);
+      res.json(configToAgent(ca));
     } catch (err) {
       res.status(500).json({ error: (err as Error).message });
     }

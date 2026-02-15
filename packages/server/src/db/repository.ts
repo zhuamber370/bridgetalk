@@ -1,5 +1,5 @@
 import type Database from 'better-sqlite3';
-import type { Task, Message, TaskStatus, Agent } from '@openclaw/shared';
+import type { Task, Message, TaskStatus } from '@openclaw/shared';
 import { nowMs } from '@openclaw/shared';
 
 // ─── Row → Model Converters ───
@@ -27,71 +27,10 @@ function rowToMessage(row: Record<string, unknown>): Message {
   };
 }
 
-function rowToAgent(row: Record<string, unknown>): Agent {
-  return {
-    id: row.id as string,
-    name: row.name as string,
-    description: row.description as string | undefined,
-    model: row.model as string | undefined,
-    createdAt: row.created_at as number,
-    updatedAt: row.updated_at as number,
-  };
-}
-
 // ─── Repository ───
 
 export class Repository {
   constructor(private db: Database.Database) {}
-
-  // ── Agents ──
-
-  createAgent(agent: Agent): Agent {
-    this.db.prepare(`
-      INSERT INTO agents (id, name, description, model, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `).run(
-      agent.id, agent.name, agent.description ?? null, agent.model ?? null,
-      agent.createdAt, agent.updatedAt,
-    );
-    return agent;
-  }
-
-  getAgent(id: string): Agent | null {
-    const row = this.db.prepare('SELECT * FROM agents WHERE id = ?').get(id);
-    return row ? rowToAgent(row as Record<string, unknown>) : null;
-  }
-
-  listAgents(): Agent[] {
-    const rows = this.db.prepare('SELECT * FROM agents ORDER BY created_at ASC').all();
-    return (rows as Record<string, unknown>[]).map(rowToAgent);
-  }
-
-  updateAgent(id: string, patches: Partial<Pick<Agent, 'name' | 'description' | 'model'>>): Agent | null {
-    const sets: string[] = [];
-    const values: unknown[] = [];
-
-    if (patches.name !== undefined) { sets.push('name = ?'); values.push(patches.name); }
-    if (patches.description !== undefined) { sets.push('description = ?'); values.push(patches.description); }
-    if (patches.model !== undefined) { sets.push('model = ?'); values.push(patches.model); }
-
-    if (sets.length === 0) return this.getAgent(id);
-
-    sets.push('updated_at = ?');
-    values.push(nowMs());
-    values.push(id);
-
-    this.db.prepare(`UPDATE agents SET ${sets.join(', ')} WHERE id = ?`).run(...values);
-    return this.getAgent(id);
-  }
-
-  deleteAgent(id: string): void {
-    // 先删除该 Agent 下所有任务的消息，再删任务，最后删 Agent
-    this.db.prepare(`
-      DELETE FROM messages WHERE task_id IN (SELECT id FROM tasks WHERE agent_id = ?)
-    `).run(id);
-    this.db.prepare('DELETE FROM tasks WHERE agent_id = ?').run(id);
-    this.db.prepare('DELETE FROM agents WHERE id = ?').run(id);
-  }
 
   // ── Tasks ──
 
