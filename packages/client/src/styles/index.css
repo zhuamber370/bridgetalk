@@ -1,43 +1,102 @@
 @import "tailwindcss";
 
 :root {
-  /* 主色调 */
-  --color-primary: #4F46E5;           /* Indigo 600 */
-  --color-primary-hover: #4338CA;     /* Indigo 700 */
-  --color-primary-light: #EEF2FF;     /* Indigo 50 */
+  /* ============================================
+     主色调 - 深邃紫蓝色
+     ============================================ */
+  --color-primary: #6366f1;
+  --color-primary-hover: #4f46e5;
+  --color-primary-light: #e0e7ff;
+  --color-primary-subtle: #f5f7ff;
+  --color-primary-dark: #4338ca;
 
-  /* 中性色 */
-  --color-bg: #FFFFFF;                /* 白色背景 */
-  --color-bg-secondary: #F9FAFB;      /* Gray 50 */
-  --color-sidebar: #1E293B;           /* Slate 800 */
-  --color-border: #E5E7EB;            /* Gray 200 */
-  --color-text: #111827;              /* Gray 900 */
-  --color-text-secondary: #6B7280;    /* Gray 500 */
+  /* ============================================
+     语义化灰度 - Slate色系
+     ============================================ */
+  --color-slate-50: #f8fafc;
+  --color-slate-100: #f1f5f9;
+  --color-slate-200: #e2e8f0;
+  --color-slate-300: #cbd5e1;
+  --color-slate-400: #94a3b8;
+  --color-slate-500: #64748b;
+  --color-slate-600: #475569;
+  --color-slate-700: #334155;
+  --color-slate-800: #1e293b;
+  --color-slate-900: #0f172a;
 
-  /* 状态色 */
-  --color-success: #10B981;           /* Green 500 */
-  --color-warning: #F59E0B;           /* Amber 500 */
-  --color-error: #EF4444;             /* Red 500 */
-  --color-info: #3B82F6;              /* Blue 500 */
+  /* ============================================
+     状态色 - 降低饱和度
+     ============================================ */
+  --color-success: #10b981;
+  --color-success-light: #d1fae5;
+  --color-success-dark: #059669;
+  
+  --color-warning: #f59e0b;
+  --color-warning-light: #fef3c7;
+  --color-warning-dark: #d97706;
+  
+  --color-error: #ef4444;
+  --color-error-light: #fee2e2;
+  --color-error-dark: #dc2626;
+  
+  --color-info: #3b82f6;
+  --color-info-light: #dbeafe;
+  --color-info-dark: #2563eb;
 
-  /* 协作色 */
-  --color-coordination: #FEF3C7;      /* Amber 100 */
-  --color-subtask: #FED7AA;           /* Orange 200 */
+  /* ============================================
+     特殊色 - 委派任务使用Teal
+     ============================================ */
+  --color-delegated: #14b8a6;
+  --color-delegated-light: #ccfbf1;
+  --color-delegated-dark: #0d9488;
 
-  /* 卡片阴影 */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-  --shadow-hover: 0 8px 16px -4px rgb(0 0 0 / 0.12);
+  /* ============================================
+     背景色
+     ============================================ */
+  --color-bg: #ffffff;
+  --color-bg-secondary: #f8fafc;
+  --color-bg-tertiary: #f1f5f9;
+  --color-sidebar: #1e293b;
+  --color-sidebar-hover: #334155;
 
-  /* 圆角系统 */
-  --radius-sm: 6px;    /* 小元素（徽章、标签）*/
-  --radius-md: 8px;    /* 卡片 */
-  --radius-lg: 12px;   /* 模态框 */
-  --radius-xl: 16px;   /* 大容器 */
-  --radius-full: 9999px; /* 圆形头像、按钮 */
+  /* ============================================
+     边框与分隔线
+     ============================================ */
+  --color-border: #e2e8f0;
+  --color-border-light: #f1f5f9;
+  --color-border-dark: #cbd5e1;
 
-  /* 间距系统（8px 网格）*/
+  /* ============================================
+     文字色
+     ============================================ */
+  --color-text: #0f172a;
+  --color-text-secondary: #64748b;
+  --color-text-muted: #94a3b8;
+  --color-text-inverse: #ffffff;
+
+  /* ============================================
+     圆角系统（4px基础）
+     ============================================ */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-full: 9999px;
+
+  /* ============================================
+     阴影层级
+     ============================================ */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.03);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+  --shadow-hover: 0 8px 16px -4px rgb(0 0 0 / 0.1);
+  --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.03);
+
+  /* ============================================
+     间距系统（4px基础）
+     ============================================ */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -45,11 +104,45 @@
   --space-5: 20px;
   --space-6: 24px;
   --space-8: 32px;
+  --space-10: 40px;
   --space-12: 48px;
 
-  /* 移动端安全区域 */
+  /* ============================================
+     字体大小
+     ============================================ */
+  --font-xs: 11px;
+  --font-sm: 13px;
+  --font-base: 14px;
+  --font-md: 16px;
+  --font-lg: 18px;
+  --font-xl: 20px;
+  --font-2xl: 24px;
+
+  /* ============================================
+     字重
+     ============================================ */
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+
+  /* ============================================
+     行高
+     ============================================ */
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+
+  /* ============================================
+     移动端安全区域
+     ============================================ */
   --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-top: env(safe-area-inset-top, 0px);
 }
+
+/* ============================================
+   基础重置
+   ============================================ */
 
 * {
   box-sizing: border-box;
@@ -59,9 +152,11 @@
 
 html, body, #root {
   height: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
   background: var(--color-bg);
+  color: var(--color-text);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Prevent overscroll bounce on mobile */
@@ -69,14 +164,13 @@ body {
   overflow: hidden;
   position: fixed;
   width: 100%;
-  color: var(--color-text);
 }
 
 /* ============================================
    动画系统
    ============================================ */
 
-/* 页面切换动画 */
+/* 页面切换 */
 @keyframes slideInRight {
   from {
     opacity: 0;
@@ -99,7 +193,7 @@ body {
   }
 }
 
-/* 消息出现动画 */
+/* 消息出现 */
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -111,28 +205,43 @@ body {
   }
 }
 
-/* 侧边栏展开/折叠 */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* 侧边栏 */
 @keyframes expandWidth {
-  from {
-    width: 60px;
-  }
-  to {
-    width: 240px;
-  }
+  from { width: 72px; }
+  to { width: 240px; }
 }
 
 @keyframes collapseWidth {
-  from {
-    width: 240px;
-  }
-  to {
-    width: 60px;
-  }
+  from { width: 240px; }
+  to { width: 72px; }
+}
+
+/* Pulse 动画 */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Spin */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Shimmer */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
 /* 工具类 */
 .animate-slide-in-right {
-  animation: slideInRight 0.2s ease-out;
+  animation: slideInRight 0.25s ease-out;
 }
 
 .animate-slide-out-left {
@@ -140,43 +249,19 @@ body {
 }
 
 .animate-fade-in-up {
-  animation: fadeInUp 0.15s ease-out;
+  animation: fadeInUp 0.2s ease-out;
 }
 
-/* ============================================
-   响应式工具类
-   ============================================ */
-
-/* 断点 */
-@media (min-width: 768px) {
-  .tablet\:flex { display: flex; }
-  .tablet\:hidden { display: none; }
+.animate-fade-in {
+  animation: fadeIn 0.15s ease-out;
 }
 
-@media (min-width: 1024px) {
-  .desktop\:flex { display: flex; }
-  .desktop\:hidden { display: none; }
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* 移动优先隐藏 */
-.mobile-only {
-  display: block;
-}
-
-@media (min-width: 768px) {
-  .mobile-only {
-    display: none;
-  }
-}
-
-.desktop-only {
-  display: none;
-}
-
-@media (min-width: 1024px) {
-  .desktop-only {
-    display: block;
-  }
+.animate-spin {
+  animation: spin 1s linear infinite;
 }
 
 /* ============================================
@@ -184,8 +269,8 @@ body {
    ============================================ */
 
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -193,12 +278,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
+  background: var(--color-slate-300);
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--color-slate-400);
 }
 
 /* ============================================
@@ -210,7 +295,9 @@ body {
   outline-offset: 2px;
 }
 
-button:focus-visible {
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
@@ -220,8 +307,76 @@ button:focus-visible {
    ============================================ */
 
 @media (pointer: coarse) {
-  button, a {
+  button, a, [role="button"] {
     min-height: 44px;
     min-width: 44px;
   }
+  
+  /* 增大滚动条 */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+}
+
+/* ============================================
+   工具类
+   ============================================ */
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 骨架屏 */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-slate-200) 25%,
+    var(--color-slate-100) 50%,
+    var(--color-slate-200) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* 玻璃拟态效果 */
+.glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* 响应式显示控制 */
+.mobile-only {
+  display: block;
+}
+
+.desktop-only {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .mobile-only {
+    display: none;
+  }
+  
+  .desktop-only {
+    display: block;
+  }
+}
+
+/* 选择文本颜色 */
+::selection {
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
 }

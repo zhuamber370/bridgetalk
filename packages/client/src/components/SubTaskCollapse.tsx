@@ -1,26 +1,28 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  FolderOpen, 
+  ChevronDown, 
+  ChevronRight,
+  Loader2,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  AlertCircle
+} from 'lucide-react';
 import type { Task, Message } from '@openclaw/shared';
 import { useAppState } from '../lib/store';
-import { MessageBubble } from './MessageBubble';
+import { MessageItem } from './Conversation/MessageItem';
 
-function StatusBadge({ status }: { status: Task['status'] }) {
-  const config = {
-    pending: { label: '待处理', className: 'bg-gray-100 text-gray-600' },
-    running: { label: '进行中', className: 'bg-blue-100 text-blue-600' },
-    completed: { label: '✅ 已完成', className: 'bg-green-100 text-green-600' },
-    failed: { label: '❌ 失败', className: 'bg-red-100 text-red-600' },
-    waiting: { label: '等待中', className: 'bg-yellow-100 text-yellow-600' },
-    cancelled: { label: '已取消', className: 'bg-gray-100 text-gray-500' },
-  };
-
-  const { label, className } = config[status] || config.pending;
-  return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${className}`}>
-      {label}
-    </span>
-  );
-}
+const statusConfig = {
+  pending: { icon: Clock, color: 'text-[var(--color-slate-500)]', bgColor: 'bg-[var(--color-slate-100)]' },
+  running: { icon: Loader2, color: 'text-[var(--color-info)]', bgColor: 'bg-[var(--color-info-light)]' },
+  completed: { icon: CheckCircle2, color: 'text-[var(--color-success)]', bgColor: 'bg-[var(--color-success-light)]' },
+  failed: { icon: XCircle, color: 'text-[var(--color-error)]', bgColor: 'bg-[var(--color-error-light)]' },
+  waiting: { icon: AlertCircle, color: 'text-[var(--color-warning)]', bgColor: 'bg-[var(--color-warning-light)]' },
+  cancelled: { icon: Clock, color: 'text-[var(--color-slate-400)]', bgColor: 'bg-[var(--color-slate-100)]' },
+};
 
 export function SubTaskCollapse({ task }: { task?: Task }) {
   const [expanded, setExpanded] = useState(false);
@@ -29,56 +31,100 @@ export function SubTaskCollapse({ task }: { task?: Task }) {
   if (!task) return null;
 
   const subMessages = messagesByTask[task.id] || [];
-  const agent = agents.find(a => a.id === task.agentId);
+  const agent = agents.find((a) => a.id === task.agentId);
+  const status = statusConfig[task.status] || statusConfig.pending;
+  const StatusIcon = status.icon;
 
   return (
-    <div className="my-3 border border-amber-200 rounded-lg overflow-hidden">
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="my-3 border border-[var(--color-delegated)]/30 rounded-xl overflow-hidden bg-white"
+    >
       {/* 折叠标题 */}
-      <button
+      <motion.button
         onClick={() => setExpanded(!expanded)}
-        className="w-full px-4 py-3 bg-amber-50 flex items-center justify-between hover:bg-amber-100 transition-colors"
+        whileHover={{ backgroundColor: 'var(--color-delegated-light)' }}
+        className="w-full px-4 py-3 bg-[var(--color-delegated-light)]/50 flex items-center justify-between transition-colors"
       >
-        <div className="flex items-center gap-2">
-          <svg className="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
-          </svg>
-          <span className="font-medium text-amber-900">
-            {agent?.name || task.agentId} 工作过程
-          </span>
-          <StatusBadge status={task.status} />
-        </div>
-        <svg
-          className={`w-5 h-5 text-amber-600 transition-transform ${expanded ? 'rotate-180' : ''}`}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
+        <div className="flex items-center gap-3"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
-
-      {/* 展开内容 */}
-      {expanded && (
-        <div className="bg-white p-4 border-t border-amber-200">
-          {subMessages.length === 0 ? (
-            <div className="text-sm text-gray-500 text-center py-4">
-              暂无消息
-            </div>
-          ) : (
-            subMessages.map((msg: Message) => (
-              <MessageBubble key={msg.id} message={msg} />
-            ))
-          )}
-          <div className="mt-3 text-xs text-gray-500 text-right">
-            <Link
-              to={`/agents/${task.agentId}/tasks/${task.id}`}
-              className="text-amber-600 hover:underline"
-            >
-              查看完整对话 →
-            </Link>
+          <div className={`w-8 h-8 rounded-lg ${status.bgColor} flex items-center justify-center`}>
+            <StatusIcon className={`w-4 h-4 ${status.color} ${task.status === 'running' ? 'animate-spin' : ''}`} />
+          </div>
+          
+          <div className="text-left"
+          >
+            <span className="text-[14px] font-semibold text-[var(--color-delegated-dark)]">
+              {agent?.name || task.agentId}
+            </span>
+            <p className="text-[12px] text-[var(--color-delegated)]">
+              工作过程
+            </p>
           </div>
         </div>
-      )}
-    </div>
+        
+        <motion.div
+          animate={{ rotate: expanded ? 180 : 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <ChevronDown className="w-5 h-5 text-[var(--color-delegated)]" />
+        </motion.div>
+      </motion.button>
+
+      {/* 展开内容 */}
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="bg-white p-4 border-t border-[var(--color-delegated)]/20"
+            >
+              {subMessages.length === 0 ? (
+                <div className="text-[14px] text-[var(--color-text-muted)] text-center py-6"
+                >
+                  暂无消息
+                </div>
+              ) : (
+                <div className="space-y-0">
+                  {subMessages.map((msg: Message, index) => {
+                    const prevMessage = index > 0 ? subMessages[index - 1] : undefined;
+                    const isGrouped = Boolean(
+                      prevMessage &&
+                      prevMessage.senderType === msg.senderType &&
+                      prevMessage.senderAgentId === msg.senderAgentId &&
+                      msg.timestamp - prevMessage.timestamp < 60000
+                    );
+
+                    return (
+                      <MessageItem
+                        key={msg.id}
+                        message={msg}
+                        isGrouped={isGrouped}
+                      />
+                    );
+                  })}
+                </div>
+              )}
+              
+              <div className="mt-4 text-right">
+                <Link
+                  to={`/agents/${task.agentId}/tasks/${task.id}`}
+                  className="inline-flex items-center gap-1.5 text-[13px] text-[var(--color-delegated)] hover:text-[var(--color-delegated-dark)] font-medium transition-colors"
+                >
+                  <FolderOpen className="w-4 h-4" />
+                  查看完整对话
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }

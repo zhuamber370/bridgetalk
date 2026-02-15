@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Bot, Plus } from 'lucide-react';
 import { useAppState, useDispatch } from '../lib/store';
-import { listTasks, getAgent, getTask } from '../lib/api';
+import { listTasks, getAgent, getTask, listAgents } from '../lib/api';
 import { useResponsive } from '../lib/hooks';
-import { ThreeColumnLayout } from '../components/Layout';
+import { AdaptiveLayout } from '../components/Layout';
 import { AgentSidebar, BottomNav } from '../components/Sidebar';
 import { TaskInboxPanel } from '../components/TaskInbox';
 import { ConversationPanel } from '../components/Conversation';
@@ -11,8 +13,7 @@ import { CreateAgentModal } from '../components/CreateAgentModal';
 import type { Task } from '@openclaw/shared';
 
 /**
- * Agent Inbox 页面 - 三栏布局
- * 路由：/agents/:agentId 或 /agents/:agentId/tasks/:taskId
+ * Agent Inbox 页面 - 使用新的AdaptiveLayout
  */
 export function AgentInboxPage() {
   const { agentId, taskId } = useParams<{ agentId: string; taskId?: string }>();
@@ -21,6 +22,13 @@ export function AgentInboxPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { isMobile, isDesktop } = useResponsive();
+
+  // Load all agents list on mount
+  useEffect(() => {
+    listAgents()
+      .then((data) => dispatch({ type: 'SET_AGENTS', agents: data }))
+      .catch(console.error);
+  }, [dispatch]);
 
   // Load agent info
   useEffect(() => {
@@ -72,18 +80,18 @@ export function AgentInboxPage() {
     dispatch({ type: 'TOGGLE_SIDEBAR' });
   };
 
-  // 任务点击（导航到任务详情）
+  // 任务点击
   const handleTaskClick = (task: Task) => {
     if (isMobile) {
       // Mobile: 导航到新页面
       navigate(`/agents/${agentId}/tasks/${task.id}`);
     } else {
-      // Desktop/Tablet: 更新 URL 但保持在同一页面
+      // Desktop/Tablet: 更新 URL
       navigate(`/agents/${agentId}/tasks/${task.id}`, { replace: true });
     }
   };
 
-  // 返回（清空任务选择）
+  // 返回
   const handleBack = () => {
     navigate(`/agents/${agentId}`);
   };
@@ -91,57 +99,44 @@ export function AgentInboxPage() {
   // 没有 Agent 时显示欢迎页
   if (!agentId || agents.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-full px-6" style={{ background: 'var(--color-bg)' }}>
-        <div
-          className="w-24 h-24 rounded-full flex items-center justify-center mb-8"
-          style={{ background: 'var(--color-primary-light)' }}
+      <div className="flex flex-col items-center justify-center h-full px-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-center"
         >
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
-        </div>
-        <h1 className="text-2xl font-bold mb-2" style={{ color: 'var(--color-text)' }}>
-          欢迎使用 OpenClaw
-        </h1>
-        <p className="text-center mb-8" style={{ color: 'var(--color-text-secondary)' }}>
-          创建您的第一个 AI Agent 开始使用
-        </p>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="px-6 py-3 rounded-lg text-sm font-medium text-white transition-colors"
-          style={{
-            background: 'var(--color-primary)',
-            borderRadius: 'var(--radius-md)',
-          }}
-          onMouseOver={(e) => (e.currentTarget.style.background = 'var(--color-primary-hover)')}
-          onMouseOut={(e) => (e.currentTarget.style.background = 'var(--color-primary)')}
-        >
-          新建 Agent
-        </button>
+          <div className="w-24 h-24 rounded-full flex items-center justify-center mb-8 bg-[var(--color-primary-subtle)]"
+          >
+            <Bot className="w-12 h-12 text-[var(--color-primary)]" />
+          </div>
+          
+          <h1 className="text-2xl font-bold mb-3 text-[var(--color-text)]">
+            欢迎使用 OpenClaw
+          </h1>
+          
+          <p className="text-center mb-8 text-[var(--color-text-secondary)] max-w-sm">
+            创建您的第一个 AI Agent 开始智能任务管理之旅
+          </p>
+          
+          <motion.button
+            onClick={() => setShowCreateModal(true)}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="flex items-center gap-2 px-6 py-3 rounded-xl text-[15px] font-semibold text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] transition-colors shadow-lg"
+          >
+            <Plus className="w-5 h-5" />
+            新建 Agent
+          </motion.button>
 
-        <CreateAgentModal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} />
+          <CreateAgentModal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} />
+        </motion.div>
       </div>
     );
   }
 
-  // Mobile: 根据 taskId 决定显示 Inbox 还是 Conversation
-  if (isMobile) {
-    if (taskId) {
-      return <ConversationPanel taskId={taskId} onBack={handleBack} />;
-    }
-
-    return (
-      <ThreeColumnLayout
-        inbox={<TaskInboxPanel agentId={agentId} onTaskClick={handleTaskClick} showAgentSwitcher />}
-        bottomNav={<BottomNav />}
-      />
-    );
-  }
-
-  // Desktop/Tablet: 三栏或两栏布局
   return (
-    <ThreeColumnLayout
+    <AdaptiveLayout
       sidebar={
         isDesktop ? (
           <AgentSidebar
@@ -160,20 +155,11 @@ export function AgentInboxPage() {
       }
       content={
         taskId ? (
-          <ConversationPanel taskId={taskId} onBack={!isDesktop ? handleBack : undefined} />
-        ) : (
-          <div className="flex items-center justify-center h-full bg-gray-50">
-            <div className="text-center">
-              <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mx-auto mb-4">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                </svg>
-              </div>
-              <p className="text-sm text-gray-500">选择一个任务开始对话</p>
-            </div>
-          </div>
-        )
+          <ConversationPanel taskId={taskId} onBack={isMobile ? handleBack : undefined} />
+        ) : undefined
       }
+      bottomNav={<BottomNav />}
+      showInboxOnMobile={!taskId}
     />
   );
 }

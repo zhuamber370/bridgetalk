@@ -1,3 +1,5 @@
+import { motion } from 'framer-motion';
+import { GitPullRequest, Clock, Trash2, MoreHorizontal } from 'lucide-react';
 import { TaskStatusBadge } from '../TaskStatusBadge';
 import type { Task } from '@openclaw/shared';
 
@@ -11,7 +13,13 @@ export interface TaskCardCompactProps {
 }
 
 /**
- * 紧凑型任务卡片（用于 Inbox 列表）
+ * 重构后的紧凑型任务卡片
+ * 
+ * 改进点：
+ * 1. 更好的视觉层次和间距
+ * 2. 子任务使用Teal色区分
+ * 3. 更明显的active状态
+ * 4. 改进的删除交互
  */
 export function TaskCardCompact({
   task,
@@ -38,67 +46,87 @@ export function TaskCardCompact({
     });
   };
 
-  // 子任务标识（左侧橙色边框）
+  // 子任务标识
   const isSubTask = !!task.parentTaskId;
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ scale: 1.01 }}
+      whileTap={{ scale: 0.99 }}
       onClick={onClick}
-      className={`group relative flex flex-col gap-2 py-3 px-4 rounded-lg cursor-pointer transition-all mb-2 ${
+      className={`group relative flex flex-col gap-2 py-4 px-4 rounded-xl cursor-pointer transition-all mb-3 border ${
         isActive
-          ? 'bg-blue-50 border-2 border-blue-300'
-          : 'bg-white border border-gray-200 hover:border-gray-300 hover:shadow-sm'
-      } ${isSubTask ? 'border-l-4 border-l-orange-400' : ''}`}
-      style={!isActive ? { boxShadow: 'var(--shadow-sm)' } : undefined}
+          ? 'bg-[var(--color-primary-subtle)] border-[var(--color-primary)] shadow-md'
+          : 'bg-white border-[var(--color-border)] hover:border-[var(--color-slate-300)] hover:shadow-sm'
+      }`}
     >
-      {/* 子任务标签 */}
+      {/* 左侧色条（active状态）*/}
+      {isActive && (
+        <div className="absolute left-0 top-3 bottom-3 w-1 bg-[var(--color-primary)] rounded-r-full" />
+      )}
+
+      {/* 子任务指示器（Teal色）*/}
       {isSubTask && (
-        <div className="flex items-center gap-1 text-xs text-orange-600 mb-1">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-          </svg>
-          <span>委派任务</span>
+        <div className="absolute left-0 top-3 bottom-3 w-1 bg-[var(--color-delegated)] rounded-r-full" />
+      )}
+
+      {/* 委派标签 */}
+      {isSubTask && (
+        <div className="flex items-center gap-1.5 mb-1">
+          <GitPullRequest className="w-3.5 h-3.5 text-[var(--color-delegated)]" />
+          <span className="text-[11px] font-medium text-[var(--color-delegated-dark)]">
+            委派任务
+          </span>
         </div>
       )}
 
       {/* 标题 + 状态 */}
-      <div className="flex items-start justify-between gap-2">
-        <h3 className={`text-sm font-semibold truncate flex-1 ${
-          isActive ? 'text-blue-900' : 'text-gray-900'
-        }`}>
+      <div className="flex items-start justify-between gap-3">
+        <h3
+          className={`text-[15px] font-semibold leading-snug line-clamp-2 flex-1 ${
+            isActive ? 'text-[var(--color-primary-dark)]' : 'text-[var(--color-text)]'
+          }`}
+        >
           {task.title}
         </h3>
-        <TaskStatusBadge status={task.status} />
+        <div className="shrink-0 pt-0.5">
+          <TaskStatusBadge status={task.status} />
+        </div>
       </div>
 
       {/* 消息预览 */}
       {lastMessagePreview && (
-        <p className="text-xs text-gray-500 truncate">
+        <p className="text-[13px] text-[var(--color-text-secondary)] line-clamp-1 leading-relaxed">
           {lastMessagePreview}
         </p>
       )}
 
-      {/* 底部信息：时间 */}
-      <div className="flex items-center justify-between text-xs text-gray-400">
-        <span>{formatTime(task.updatedAt)}</span>
-      </div>
+      {/* 底部信息 */}
+      <div className="flex items-center justify-between text-[12px] text-[var(--color-text-muted)] mt-1">
+        <div className="flex items-center gap-1">
+          <Clock className="w-3.5 h-3.5" />
+          <span>{formatTime(task.updatedAt)}</span>
+        </div>
 
-      {/* 悬停删除按钮 */}
-      {onDelete && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete(task.id);
-          }}
-          className="absolute top-2 right-2 w-6 h-6 rounded-md bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
-          title="删除任务"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="3 6 5 6 21 6" />
-            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-          </svg>
-        </button>
-      )}
-    </div>
+        {/* 删除按钮（悬停显示）*/}
+        {onDelete && (
+          <motion.button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (confirm('确定删除这个任务吗？')) {
+                onDelete(task.id);
+              }
+            }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-md hover:bg-[var(--color-error-light)] text-[var(--color-text-muted)] hover:text-[var(--color-error)]"
+          >
+            <Trash2 className="w-4 h-4" />
+          </motion.button>
+        )}
+      </div>
+    </motion.div>
   );
 }

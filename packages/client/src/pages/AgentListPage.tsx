@@ -1,11 +1,12 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Loader2 } from 'lucide-react';
 import { useAppState, useDispatch } from '../lib/store';
 import { listAgents } from '../lib/api';
 
 /**
  * 首页 - 自动重定向到第一个 Agent 的 Inbox
- * 如果没有 Agent，重定向会在 AgentInboxPage 中处理（显示欢迎页）
  */
 export function AgentListPage() {
   const { agents } = useAppState();
@@ -28,10 +29,18 @@ export function AgentListPage() {
 
   // 加载中状态
   return (
-    <div className="flex items-center justify-center h-full">
-      <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-        加载中...
-      </p>
+    <div className="flex flex-col items-center justify-center h-full"
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="flex flex-col items-center gap-4"
+      >
+        <div className="w-12 h-12 rounded-full border-4 border-[var(--color-primary-light)] border-t-[var(--color-primary)] animate-spin" />
+        <p className="text-[15px] text-[var(--color-text-secondary)] font-medium">
+          加载中...
+        </p>
+      </motion.div>
     </div>
   );
 }

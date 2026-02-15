@@ -1,10 +1,11 @@
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Inbox, Plus } from 'lucide-react';
 import { useAppState, useDispatch } from '../../lib/store';
 import { createTask, deleteTask } from '../../lib/api';
 import { TaskCardCompact } from './TaskCardCompact';
 import { QuickTaskInput } from './QuickTaskInput';
 import { AgentSwitcher } from '../Sidebar/AgentSwitcher';
-import { ShowOn } from '../Layout';
 import type { TaskStatus, Task } from '@openclaw/shared';
 
 export interface TaskInboxPanelProps {
@@ -27,15 +28,25 @@ const FILTER_TABS: { key: FilterTab; label: string }[] = [
 
 function matchesFilter(status: TaskStatus, filter: FilterTab): boolean {
   switch (filter) {
-    case 'all': return true;
-    case 'active': return status === 'pending' || status === 'running';
-    case 'waiting': return status === 'waiting';
-    case 'done': return status === 'completed' || status === 'failed' || status === 'cancelled';
+    case 'all':
+      return true;
+    case 'active':
+      return status === 'pending' || status === 'running';
+    case 'waiting':
+      return status === 'waiting';
+    case 'done':
+      return status === 'completed' || status === 'failed' || status === 'cancelled';
   }
 }
 
 /**
- * 任务 Inbox 面板（中间栏）
+ * 重构后的任务 Inbox 面板
+ * 
+ * 改进点：
+ * 1. 更好的视觉层次
+ * 2. 改进的空状态
+ * 3. 平滑的过滤切换动画
+ * 4. 优化的统计显示
  */
 export function TaskInboxPanel({
   agentId,
@@ -99,21 +110,32 @@ export function TaskInboxPanel({
   };
 
   return (
-    <div className="flex flex-col h-full bg-white">
+    <div className="flex flex-col h-full bg-white"
+    >
       {/* Header */}
-      <div className="shrink-0 flex items-center gap-2 px-4 py-3 border-b bg-white">
+      <div className="shrink-0 flex items-center gap-3 px-4 py-4 border-b border-[var(--color-border)] bg-white"
+      >
         {showAgentSwitcher ? (
           <AgentSwitcher currentAgentId={agentId} />
         ) : (
           <>
-            <h1 className="text-lg font-semibold text-gray-900 truncate flex-1">
-              {agent?.name ?? agentId}
-            </h1>
-            {agent?.description && (
-              <p className="text-xs text-gray-500 truncate">
-                {agent.description}
-              </p>
-            )}
+            <div className="w-10 h-10 rounded-xl bg-[var(--color-primary-subtle)] flex items-center justify-center"
+            >
+              <span className="text-lg font-bold text-[var(--color-primary)]">
+                {agent?.name?.slice(0, 1).toUpperCase()}
+              </span>
+            </div>
+            <div className="flex-1 min-w-0"
+            >
+              <h1 className="text-[17px] font-bold text-[var(--color-text)] truncate">
+                {agent?.name ?? agentId}
+              </h1>
+              {agent?.description && (
+                <p className="text-[12px] text-[var(--color-text-muted)] truncate">
+                  {agent.description}
+                </p>
+              )}
+            </div>
           </>
         )}
       </div>
@@ -121,60 +143,92 @@ export function TaskInboxPanel({
       {/* 快速新建输入框 */}
       <QuickTaskInput
         onSubmit={handleCreateTask}
-        placeholder="快速新建任务..."
+        placeholder="描述您想要完成的任务..."
       />
 
-      {/* Filter tabs */}
-      <div className="shrink-0 flex gap-1 px-4 py-2 border-b bg-white overflow-x-auto">
+      {/* Filter tabs - 增大间距和padding */}
+      <div className="shrink-0 flex gap-4 px-6 py-6 border-b-2 border-[var(--color-border)] bg-[var(--color-bg-secondary)] overflow-x-auto"
+      >
         {FILTER_TABS.map((tab) => (
-          <button
+          <motion.button
             key={tab.key}
             onClick={() => setFilter(tab.key)}
-            className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className={`shrink-0 px-8 py-4 rounded-full text-[16px] font-semibold transition-colors border-2 ${
               filter === tab.key
-                ? 'bg-indigo-100 text-indigo-700'
-                : 'text-gray-500 hover:bg-gray-100'
+                ? 'bg-[var(--color-primary)] text-white shadow-md border-[var(--color-primary)]'
+                : 'bg-white text-[var(--color-text-secondary)] hover:bg-[var(--color-slate-100)] border-[var(--color-border)]'
             }`}
-            style={{ borderRadius: 'var(--radius-full)' }}
           >
             {tab.label}
             {counts[tab.key] > 0 && (
-              <span className={`ml-1 ${filter === tab.key ? 'text-indigo-500' : 'text-gray-400'}`}>
+              <span
+                className={`ml-3 ${
+                  filter === tab.key ? 'text-white/80' : 'text-[var(--color-text-muted)]'
+                }`}
+              >
                 {counts[tab.key]}
               </span>
             )}
-          </button>
+          </motion.button>
         ))}
       </div>
 
       {/* Task list */}
-      <div className="flex-1 overflow-y-auto p-3">
-        {sortedTasks.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center px-6">
-            <div className="w-16 h-16 rounded-full bg-indigo-50 flex items-center justify-center mb-4">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-              </svg>
-            </div>
-            <p className="text-sm text-gray-500">
-              {filter === 'all' ? '还没有任务，在上方快速创建一个吧' : '没有符合条件的任务'}
-            </p>
-          </div>
-        ) : (
-          sortedTasks.map((task) => (
-            <TaskCardCompact
-              key={task.id}
-              task={task}
-              isActive={ui.currentTaskId === task.id}
-              onClick={() => {
-                dispatch({ type: 'SET_CURRENT_TASK', taskId: task.id });
-                onTaskClick?.(task);
-              }}
-              onDelete={handleDeleteTask}
-              lastMessagePreview={getLastMessage(task.id)}
-            />
-          ))
-        )}
+      <div className="flex-1 overflow-y-auto p-3 bg-[var(--color-bg-secondary)]"
+      >
+        <AnimatePresence mode="wait">
+          {sortedTasks.length === 0 ? (
+            <motion.div
+              key="empty"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="flex flex-col items-center justify-center h-full text-center px-6"
+            >
+              <div className="w-16 h-16 rounded-full bg-[var(--color-primary-subtle)] flex items-center justify-center mb-4"
+              >
+                <Inbox className="w-7 h-7 text-[var(--color-primary)]" />
+              </div>
+              <p className="text-[15px] font-semibold text-[var(--color-text-secondary)] mb-1">
+                {filter === 'all' ? '还没有任务' : '没有符合条件的任务'}
+              </p>
+              <p className="text-[13px] text-[var(--color-text-muted)]">
+                {filter === 'all'
+                  ? '在上方快速创建一个吧'
+                  : '尝试切换其他筛选条件'}
+              </p>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="list"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              {sortedTasks.map((task, index) => (
+                <motion.div
+                  key={task.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.03 }}
+                >
+                  <TaskCardCompact
+                    task={task}
+                    isActive={ui.currentTaskId === task.id}
+                    onClick={() => {
+                      dispatch({ type: 'SET_CURRENT_TASK', taskId: task.id });
+                      onTaskClick?.(task);
+                    }}
+                    onDelete={handleDeleteTask}
+                    lastMessagePreview={getLastMessage(task.id)}
+                  />
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
