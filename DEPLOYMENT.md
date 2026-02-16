@@ -1,22 +1,22 @@
-# 🚢 BridgeTalk 生产部署指南
+# 🚢 BridgeTalk Production Deployment Guide
 
-本文档详细说明如何将 BridgeTalk 部署到生产环境。
+This document provides detailed instructions on how to deploy BridgeTalk to a production environment.
 
 ---
 
-## 📋 部署架构
+## 📋 Deployment Architecture
 
 ```
                      ┌─────────────────┐
                      │   Nginx (80)    │
-                     │  反向代理服务器  │
+                     │  Reverse Proxy  │
                      └────────┬────────┘
                               │
                  ┌────────────┴────────────┐
                  │                         │
          ┌───────▼────────┐       ┌───────▼────────┐
-         │ 静态文件服务    │       │  后端 API       │
-         │  (前端 dist)   │       │  (Node.js)     │
+         │ Static Files   │       │  Backend API   │
+         │  (Frontend)    │       │  (Node.js)     │
          │                │       │  :3001         │
          └────────────────┘       └───────┬────────┘
                                           │
@@ -28,136 +28,136 @@
 
 ---
 
-## 🔧 环境准备
+## 🔧 Environment Preparation
 
-### 服务器要求
+### Server Requirements
 
-- **操作系统**：Ubuntu 20.04+ / CentOS 8+ / Debian 11+
-- **CPU**：2 核心或更多
-- **内存**：2GB RAM 或更多
-- **磁盘**：10GB 可用空间
+- **Operating System**: Ubuntu 20.04+ / CentOS 8+ / Debian 11+
+- **CPU**: 2 cores or more
+- **Memory**: 2GB RAM or more
+- **Disk**: 10GB available space
 
-### 软件依赖
+### Software Dependencies
 
 ```bash
-# 1. 安装 Node.js 18+
+# 1. Install Node.js 18+
 curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
 sudo apt-get install -y nodejs
 
-# 2. 安装 pnpm
+# 2. Install pnpm
 npm install -g pnpm
 
-# 3. 安装 Nginx
+# 3. Install Nginx
 sudo apt-get install -y nginx
 
-# 4. 安装 PM2（进程管理器）
+# 4. Install PM2 (Process Manager)
 npm install -g pm2
 ```
 
 ---
 
-## 📦 构建应用
+## 📦 Build Application
 
-### 1. 克隆代码
+### 1. Clone Repository
 
 ```bash
-# 创建应用目录
+# Create application directory
 sudo mkdir -p /var/www
 cd /var/www
 
-# 克隆仓库
+# Clone repository
 sudo git clone https://github.com/zhuamber370/bridgetalk.git
 cd bridgetalk
 
-# 设置权限
+# Set permissions
 sudo chown -R $USER:$USER /var/www/bridgetalk
 ```
 
-### 2. 安装依赖
+### 2. Install Dependencies
 
 ```bash
 pnpm install
 ```
 
-### 3. 配置环境变量
+### 3. Configure Environment Variables
 
 ```bash
-# 创建生产环境配置
+# Create production environment configuration
 cp .env.example .env
 
-# 编辑配置
+# Edit configuration
 nano .env
 ```
 
-**生产环境配置示例**：
+**Production Environment Configuration Example**:
 
 ```env
-# OpenClaw Gateway 配置
+# OpenClaw Gateway Configuration
 OPENCLAW_GATEWAY_URL=ws://127.0.0.1:18789
 OPENCLAW_GATEWAY_TOKEN=your-production-token-here
 
-# 如果 Gateway 在其他服务器，使用 wss:// 协议
+# If Gateway is on another server, use wss:// protocol
 # OPENCLAW_GATEWAY_URL=wss://gateway.example.com
 # OPENCLAW_GATEWAY_TOKEN=your-token
 
-# 可选：超时设置
+# Optional: Timeout settings
 # OPENCLAW_GATEWAY_TIMEOUT=300000
 ```
 
-### 4. 构建前端和后端
+### 4. Build Frontend and Backend
 
 ```bash
-# 构建所有包
+# Build all packages
 pnpm build
 
-# 验证构建结果
+# Verify build results
 ls -la packages/client/dist
 ls -la packages/server/dist
 ```
 
 ---
 
-## 🔐 配置 Nginx
+## 🔐 Configure Nginx
 
-### 1. 复制配置文件
+### 1. Copy Configuration File
 
 ```bash
-# 复制示例配置
+# Copy example configuration
 sudo cp nginx.conf.example /etc/nginx/sites-available/bridgetalk
 
-# 编辑配置
+# Edit configuration
 sudo nano /etc/nginx/sites-available/bridgetalk
 ```
 
-### 2. 修改配置
+### 2. Modify Configuration
 
-修改以下内容：
+Modify the following:
 
 ```nginx
-# 1. 修改域名
-server_name your-domain.com;  # 改为你的域名
+# 1. Change domain name
+server_name your-domain.com;  # Change to your domain
 
-# 2. 修改前端路径
+# 2. Change frontend path
 root /var/www/bridgetalk/packages/client/dist;
 
-# 3. 修改后端地址（如果后端在其他服务器）
+# 3. Change backend address (if backend is on another server)
 proxy_pass http://127.0.0.1:3001;
 ```
 
-### 3. 启用配置
+### 3. Enable Configuration
 
 ```bash
-# 创建软链接
+# Create symbolic link
 sudo ln -s /etc/nginx/sites-available/bridgetalk /etc/nginx/sites-enabled/
 
-# 测试配置
+# Test configuration
 sudo nginx -t
 
-# 重启 Nginx
+# Restart Nginx
 sudo systemctl restart nginx
 ```
 
-### 4. 开机自启
+### 4. Enable Auto-start
 
 ```bash
 sudo systemctl enable nginx
@@ -165,66 +165,66 @@ sudo systemctl enable nginx
 
 ---
 
-## 🚀 启动后端服务
+## 🚀 Start Backend Service
 
-### 使用 PM2 管理进程（推荐）
+### Using PM2 for Process Management (Recommended)
 
 ```bash
 cd /var/www/bridgetalk/packages/server
 
-# 启动后端
+# Start backend
 pm2 start dist/index.js --name bridgetalk-server
 
-# 查看状态
+# Check status
 pm2 status
 
-# 查看日志
+# View logs
 pm2 logs bridgetalk-server
 
-# 开机自启
+# Enable auto-start on boot
 pm2 startup
 pm2 save
 ```
 
-### PM2 常用命令
+### Common PM2 Commands
 
 ```bash
-# 重启服务
+# Restart service
 pm2 restart bridgetalk-server
 
-# 停止服务
+# Stop service
 pm2 stop bridgetalk-server
 
-# 删除服务
+# Delete service
 pm2 delete bridgetalk-server
 
-# 实时日志
+# Real-time logs
 pm2 logs bridgetalk-server --lines 100
 
-# 监控
+# Monitor
 pm2 monit
 ```
 
 ---
 
-## 🔒 HTTPS 配置（推荐）
+## 🔒 HTTPS Configuration (Recommended)
 
-### 使用 Let's Encrypt（免费证书）
+### Using Let's Encrypt (Free Certificate)
 
 ```bash
-# 安装 certbot
+# Install certbot
 sudo apt-get install -y certbot python3-certbot-nginx
 
-# 获取证书（会自动修改 Nginx 配置）
+# Obtain certificate (will automatically modify Nginx configuration)
 sudo certbot --nginx -d your-domain.com
 
-# 自动续期测试
+# Test auto-renewal
 sudo certbot renew --dry-run
 ```
 
-### 手动配置 HTTPS
+### Manual HTTPS Configuration
 
-如果你已有证书，在 Nginx 配置中添加：
+If you already have a certificate, add this to your Nginx configuration:
 
 ```nginx
 server {
@@ -235,15 +235,15 @@ server {
     ssl_certificate /path/to/your/cert.pem;
     ssl_certificate_key /path/to/your/key.pem;
 
-    # SSL 优化
+    # SSL optimization
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers HIGH:!aNULL:!MD5;
     ssl_prefer_server_ciphers on;
 
-    # ... 其他配置 ...
+    # ... other configurations ...
 }
 
-# HTTP 自动跳转 HTTPS
+# HTTP to HTTPS redirect
 server {
     listen 80;
     listen [::]:80;
@@ -254,134 +254,134 @@ server {
 
 ---
 
-## 📊 监控和日志
+## 📊 Monitoring and Logs
 
-### 后端日志
+### Backend Logs
 
 ```bash
-# PM2 日志
+# PM2 logs
 pm2 logs bridgetalk-server
 
-# 日志文件位置
+# Log file locations
 ~/.pm2/logs/bridgetalk-server-out.log
 ~/.pm2/logs/bridgetalk-server-error.log
 ```
 
-### Nginx 日志
+### Nginx Logs
 
 ```bash
-# 访问日志
+# Access logs
 sudo tail -f /var/log/nginx/bridgetalk_access.log
 
-# 错误日志
+# Error logs
 sudo tail -f /var/log/nginx/bridgetalk_error.log
 ```
 
-### 系统监控
+### System Monitoring
 
 ```bash
-# CPU 和内存使用
+# CPU and memory usage
 pm2 monit
 
-# 磁盘使用
+# Disk usage
 df -h
 
-# 数据库大小
+# Database size
 du -h /var/www/bridgetalk/packages/server/agent_channel_v2.db
 ```
 
 ---
 
-## 🔄 更新部署
+## 🔄 Deployment Updates
 
-### 标准更新流程
+### Standard Update Process
 
 ```bash
 cd /var/www/bridgetalk
 
-# 1. 拉取最新代码
+# 1. Pull latest code
 git pull origin main
 
-# 2. 安装依赖（如果有更新）
+# 2. Install dependencies (if updated)
 pnpm install
 
-# 3. 重新构建
+# 3. Rebuild
 pnpm build
 
-# 4. 重启后端
+# 4. Restart backend
 pm2 restart bridgetalk-server
 
-# 5. 重启 Nginx（如果有配置变更）
+# 5. Restart Nginx (if configuration changed)
 sudo systemctl restart nginx
 ```
 
-### 零停机更新（使用 PM2 Reload）
+### Zero-downtime Update (Using PM2 Reload)
 
 ```bash
-# PM2 reload 会逐个重启进程，避免服务中断
+# PM2 reload will restart processes one by one, avoiding service interruption
 pm2 reload bridgetalk-server
 ```
 
 ---
 
-## 🛡️ 安全加固
+## 🛡️ Security Hardening
 
-### 1. 防火墙配置
+### 1. Firewall Configuration
 
 ```bash
-# 启用 UFW
+# Enable UFW
 sudo ufw enable
 
-# 允许 SSH
+# Allow SSH
 sudo ufw allow 22/tcp
 
-# 允许 HTTP/HTTPS
+# Allow HTTP/HTTPS
 sudo ufw allow 80/tcp
 sudo ufw allow 443/tcp
 
-# 查看状态
+# Check status
 sudo ufw status
 ```
 
-### 2. 限制后端端口访问
+### 2. Restrict Backend Port Access
 
-确保后端端口 3001 **不对外开放**：
+Ensure backend port 3001 is **not exposed publicly**:
 
 ```bash
-# 确认 3001 端口只监听 localhost
+# Confirm port 3001 only listens on localhost
 netstat -tuln | grep 3001
-# 应该显示：127.0.0.1:3001
+# Should show: 127.0.0.1:3001
 ```
 
-### 3. 数据库文件权限
+### 3. Database File Permissions
 
 ```bash
-# 限制数据库文件权限
+# Restrict database file permissions
 chmod 600 /var/www/bridgetalk/packages/server/*.db
 ```
 
-### 4. 定期更新
+### 4. Regular Updates
 
 ```bash
-# 更新系统
+# Update system
 sudo apt-get update && sudo apt-get upgrade -y
 
-# 更新 Node.js 依赖
+# Update Node.js dependencies
 cd /var/www/bridgetalk
 pnpm update
 
-# 重建并重启
+# Rebuild and restart
 pnpm build
 pm2 restart bridgetalk-server
 ```
 
 ---
 
-## 💾 数据备份
+## 💾 Data Backup
 
-### 自动备份脚本
+### Automated Backup Script
 
-创建备份脚本 `/var/www/bridgetalk/backup.sh`：
+Create backup script `/var/www/bridgetalk/backup.sh`:
 
 ```bash
 #!/bin/bash
@@ -391,110 +391,110 @@ DATE=$(date +%Y%m%d_%H%M%S)
 
 mkdir -p "$BACKUP_DIR"
 
-# 备份数据库
+# Backup database
 cp /var/www/bridgetalk/packages/server/agent_channel_v2.db \
    "$BACKUP_DIR/db_$DATE.db"
 
-# 备份 Agent 配置
+# Backup Agent configuration
 cp /var/www/bridgetalk/packages/server/openclaw.json \
    "$BACKUP_DIR/config_$DATE.json"
 
-# 删除 30 天前的备份
+# Delete backups older than 30 days
 find "$BACKUP_DIR" -name "*.db" -mtime +30 -delete
 find "$BACKUP_DIR" -name "*.json" -mtime +30 -delete
 
 echo "Backup completed: $DATE"
 ```
 
-### 设置定时备份
+### Set Up Scheduled Backups
 
 ```bash
-# 添加执行权限
+# Add execute permission
 chmod +x /var/www/bridgetalk/backup.sh
 
-# 设置 cron 任务（每天凌晨 2 点备份）
+# Set up cron job (backup daily at 2 AM)
 crontab -e
 
-# 添加以下行：
+# Add the following line:
 0 2 * * * /var/www/bridgetalk/backup.sh >> /var/log/bridgetalk_backup.log 2>&1
 ```
 
 ---
 
-## 🐛 故障排查
+## 🐛 Troubleshooting
 
-### 问题 1：Nginx 502 Bad Gateway
+### Issue 1: Nginx 502 Bad Gateway
 
-**原因**：后端服务未启动或无法访问
+**Cause**: Backend service not started or inaccessible
 
-**解决**：
+**Solution**:
 ```bash
-# 检查后端是否运行
+# Check if backend is running
 pm2 status
 
-# 检查端口监听
+# Check port listening
 netstat -tuln | grep 3001
 
-# 重启后端
+# Restart backend
 pm2 restart bridgetalk-server
 
-# 查看后端日志
+# View backend logs
 pm2 logs bridgetalk-server
 ```
 
-### 问题 2：前端访问白屏
+### Issue 2: Frontend White Screen
 
-**原因**：构建文件缺失或路径错误
+**Cause**: Build files missing or path error
 
-**解决**：
+**Solution**:
 ```bash
-# 检查构建文件是否存在
+# Check if build files exist
 ls -la /var/www/bridgetalk/packages/client/dist
 
-# 重新构建前端
+# Rebuild frontend
 cd /var/www/bridgetalk
 pnpm --filter @bridgetalk/client build
 
-# 检查 Nginx 配置的 root 路径
+# Check Nginx configuration root path
 sudo nginx -T | grep root
 ```
 
-### 问题 3：SSE 连接断开
+### Issue 3: SSE Connection Dropped
 
-**原因**：Nginx 缓冲或超时设置
+**Cause**: Nginx buffering or timeout settings
 
-**解决**：检查 Nginx 配置中的 SSE 部分：
+**Solution**: Check SSE section in Nginx configuration:
 ```nginx
 location /api/v1/events {
-    proxy_buffering off;  # 必须禁用
+    proxy_buffering off;  # Must be disabled
     proxy_cache off;
-    proxy_read_timeout 86400s;  # 增加超时时间
+    proxy_read_timeout 86400s;  # Increase timeout
 }
 ```
 
-### 问题 4：无法连接 OpenClaw Gateway
+### Issue 4: Cannot Connect to OpenClaw Gateway
 
-**原因**：Token 错误或 Gateway 未启动
+**Cause**: Token error or Gateway not started
 
-**解决**：
+**Solution**:
 ```bash
-# 检查 .env 配置
+# Check .env configuration
 cat /var/www/bridgetalk/.env
 
-# 测试 Gateway 连接
+# Test Gateway connection
 curl -v ws://127.0.0.1:18789
 
-# 查看后端日志
+# View backend logs
 pm2 logs bridgetalk-server | grep -i "gateway\|connection"
 ```
 
 ---
 
-## 📈 性能优化
+## 📈 Performance Optimization
 
-### 1. Nginx Gzip 压缩
+### 1. Nginx Gzip Compression
 
-在 Nginx 配置中添加：
+Add to Nginx configuration:
 
 ```nginx
 http {
@@ -505,9 +505,9 @@ http {
 }
 ```
 
-### 2. 静态资源缓存
+### 2. Static Resource Caching
 
-已在 `nginx.conf.example` 中配置：
+Already configured in `nginx.conf.example`:
 
 ```nginx
 location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)$ {
@@ -516,24 +516,24 @@ location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)$ {
 }
 ```
 
-### 3. 数据库优化
+### 3. Database Optimization
 
 ```bash
-# 定期执行 VACUUM 清理碎片
+# Periodically execute VACUUM to clean up fragmentation
 sqlite3 /var/www/bridgetalk/packages/server/agent_channel_v2.db "VACUUM;"
 ```
 
 ---
 
-## 📞 支持
+## 📞 Support
 
-如果遇到部署问题，请：
-1. 查看 [FAQ](./README.md#常见问题)
-2. 搜索 [GitHub Issues](https://github.com/zhuamber370/bridgetalk/issues)
-3. 提交新的 Issue 并附上日志
+If you encounter deployment issues, please:
+1. Check the [FAQ](./README.md#frequently-asked-questions)
+2. Search [GitHub Issues](https://github.com/zhuamber370/bridgetalk/issues)
+3. Submit a new Issue with logs attached
 
 ---
 
 <div align="center">
-  <p>部署愉快！ 🚀</p>
+  <p>Happy Deploying! 🚀</p>
 </div>

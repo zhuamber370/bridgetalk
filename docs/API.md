@@ -1,27 +1,27 @@
-# BridgeTalk API 文档
+# BridgeTalk API Documentation
 
-本文档详细说明 BridgeTalk 的 REST API 和 WebSocket 接口。
+This document provides detailed specifications for the BridgeTalk REST API and WebSocket interfaces.
 
 ---
 
-## 🌐 基础信息
+## 🌐 General Information
 
 ### Base URL
 
 ```
-开发环境：http://localhost:3001
-生产环境：https://your-domain.com
+Development: http://localhost:3001
+Production: https://your-domain.com
 ```
 
-### 请求头
+### Request Headers
 
 ```http
 Content-Type: application/json
 ```
 
-### 响应格式
+### Response Format
 
-成功响应：
+Success response:
 
 ```json
 {
@@ -32,7 +32,7 @@ Content-Type: application/json
 }
 ```
 
-错误响应：
+Error response:
 
 ```json
 {
@@ -43,21 +43,21 @@ Content-Type: application/json
 
 ---
 
-## 📋 API 端点
+## 📋 API Endpoints
 
-### Agent 管理
+### Agent Management
 
 #### GET /api/v1/agents
 
-获取所有 agents 列表
+Get list of all agents
 
-**请求**：
+**Request**:
 
 ```http
 GET /api/v1/agents
 ```
 
-**响应**：
+**Response**:
 
 ```json
 [
@@ -80,15 +80,15 @@ GET /api/v1/agents
 
 #### GET /api/v1/agents/:id
 
-获取单个 agent 详情
+Get details of a single agent
 
-**请求**：
+**Request**:
 
 ```http
 GET /api/v1/agents/main
 ```
 
-**响应**：
+**Response**:
 
 ```json
 {
@@ -100,15 +100,15 @@ GET /api/v1/agents/main
 }
 ```
 
-**错误**：
+**Errors**:
 
-- `404 Not Found` - Agent 不存在
+- `404 Not Found` - Agent does not exist
 
 #### POST /api/v1/agents
 
-创建新 agent
+Create a new agent
 
-**请求**：
+**Request**:
 
 ```http
 POST /api/v1/agents
@@ -122,16 +122,16 @@ Content-Type: application/json
 }
 ```
 
-**字段说明**：
+**Field Description**:
 
-| 字段 | 类型 | 必填 | 说明 |
+| Field | Type | Required | Description |
 |------|------|------|------|
-| `id` | string | 是 | Agent 唯一标识（建议使用英文） |
-| `name` | string | 是 | 显示名称 |
-| `model` | string | 是 | AI 模型名（如 claude-opus-4-6） |
-| `systemPrompt` | string | 否 | 系统提示词 |
+| `id` | string | Yes | Agent unique identifier (English recommended) |
+| `name` | string | Yes | Display name |
+| `model` | string | Yes | AI model name (e.g., claude-opus-4-6) |
+| `systemPrompt` | string | No | System prompt |
 
-**响应**：
+**Response**:
 
 ```json
 {
@@ -143,35 +143,35 @@ Content-Type: application/json
 }
 ```
 
-**错误**：
+**Errors**:
 
-- `400 Bad Request` - 缺少必填字段或字段格式错误
-- `409 Conflict` - Agent ID 已存在
+- `400 Bad Request` - Missing required fields or invalid field format
+- `409 Conflict` - Agent ID already exists
 
 ---
 
-### 任务管理
+### Task Management
 
 #### GET /api/v1/tasks
 
-获取任务列表
+Get list of tasks
 
-**请求**：
+**Request**:
 
 ```http
 GET /api/v1/tasks?agentId=main&status=running&limit=50&offset=0
 ```
 
-**查询参数**：
+**Query Parameters**:
 
-| 参数 | 类型 | 必填 | 说明 |
+| Parameter | Type | Required | Description |
 |------|------|------|------|
-| `agentId` | string | 否 | 过滤指定 agent 的任务 |
-| `status` | string | 否 | 过滤指定状态（pending/running/completed/failed/cancelled） |
-| `limit` | number | 否 | 返回数量限制（默认 100） |
-| `offset` | number | 否 | 分页偏移量（默认 0） |
+| `agentId` | string | No | Filter tasks by specific agent |
+| `status` | string | No | Filter by status (pending/running/completed/failed/cancelled) |
+| `limit` | number | No | Limit number of results (default 100) |
+| `offset` | number | No | Pagination offset (default 0) |
 
-**响应**：
+**Response**:
 
 ```json
 [
@@ -190,19 +190,19 @@ GET /api/v1/tasks?agentId=main&status=running&limit=50&offset=0
 ]
 ```
 
-**注意**：返回的是数组，不是 `{ items: [...], total: ... }` 格式。
+**Note**: Returns an array, not `{ items: [...], total: ... }` format.
 
 #### GET /api/v1/tasks/:id
 
-获取单个任务详情
+Get details of a single task
 
-**请求**：
+**Request**:
 
 ```http
 GET /api/v1/tasks/01HX...
 ```
 
-**响应**：
+**Response**:
 
 ```json
 {
@@ -219,17 +219,17 @@ GET /api/v1/tasks/01HX...
 }
 ```
 
-**错误**：
+**Errors**:
 
-- `404 Not Found` - 任务不存在
+- `404 Not Found` - Task does not exist
 
 #### POST /api/v1/tasks/:agentId/quick
 
-快速创建任务并发送消息
+Quickly create a task and send a message
 
-这是最常用的 API，用于快速开始对话。
+This is the most commonly used API for starting a conversation quickly.
 
-**请求**：
+**Request**:
 
 ```http
 POST /api/v1/tasks/main/quick
@@ -240,14 +240,14 @@ Content-Type: application/json
 }
 ```
 
-**字段说明**：
+**Field Description**:
 
-| 字段 | 类型 | 必填 | 说明 |
+| Field | Type | Required | Description |
 |------|------|------|------|
-| `message` | string | 是 | 用户消息内容 |
-| `taskId` | string | 否 | 指定任务 ID（续接已有任务）|
+| `message` | string | Yes | User message content |
+| `taskId` | string | No | Specify task ID (to continue existing task) |
 
-**响应**：
+**Response**:
 
 ```json
 {
@@ -256,24 +256,24 @@ Content-Type: application/json
 }
 ```
 
-**工作流程**：
+**Workflow**:
 
-1. 如果提供 `taskId` 且任务存在 → 续接该任务
-2. 否则 → 创建新任务（标题自动生成）
-3. 创建用户消息
-4. 后台异步执行任务（调用 AI）
-5. 通过 SSE 推送结果
+1. If `taskId` is provided and task exists → Continue that task
+2. Otherwise → Create new task (title auto-generated)
+3. Create user message
+4. Execute task asynchronously in background (call AI)
+5. Push results via SSE
 
-**错误**：
+**Errors**:
 
-- `400 Bad Request` - 缺少 message 字段
-- `404 Not Found` - 指定的 taskId 不存在
+- `400 Bad Request` - Missing message field
+- `404 Not Found` - Specified taskId does not exist
 
 #### POST /api/v1/tasks/:id/messages
 
-向任务发送新消息
+Send a new message to a task
 
-**请求**：
+**Request**:
 
 ```http
 POST /api/v1/tasks/01HX.../messages
@@ -284,7 +284,7 @@ Content-Type: application/json
 }
 ```
 
-**响应**：
+**Response**:
 
 ```json
 {
@@ -292,21 +292,21 @@ Content-Type: application/json
 }
 ```
 
-**注意**：
-- 消息不会在响应中立即返回
-- 用户消息和 AI 回复都会通过 SSE 异步推送
-- 客户端需要监听 `message.created` 事件
+**Notes**:
+- Messages are not returned immediately in the response
+- Both user messages and AI replies are pushed asynchronously via SSE
+- Client needs to listen to `message.created` events
 
-**错误**：
+**Errors**:
 
-- `404 Not Found` - 任务不存在
-- `400 Bad Request` - 任务已完成或取消
+- `404 Not Found` - Task does not exist
+- `400 Bad Request` - Task is already completed or cancelled
 
 #### PATCH /api/v1/tasks/:id
 
-更新任务状态
+Update task status
 
-**请求**：
+**Request**:
 
 ```http
 PATCH /api/v1/tasks/01HX...
@@ -317,14 +317,14 @@ Content-Type: application/json
 }
 ```
 
-**可更新字段**：
+**Updatable Fields**:
 
-| 字段 | 类型 | 说明 |
+| Field | Type | Description |
 |------|------|------|
-| `status` | string | 任务状态（cancelled 为主要用途）|
-| `title` | string | 任务标题 |
+| `status` | string | Task status (cancelled is the main use case) |
+| `title` | string | Task title |
 
-**响应**：
+**Response**:
 
 ```json
 {
@@ -339,33 +339,33 @@ Content-Type: application/json
 }
 ```
 
-**错误**：
+**Errors**:
 
-- `404 Not Found` - 任务不存在
-- `400 Bad Request` - 无效的状态转换
+- `404 Not Found` - Task does not exist
+- `400 Bad Request` - Invalid status transition
 
 ---
 
-### 消息管理
+### Message Management
 
 #### GET /api/v1/tasks/:taskId/messages
 
-获取任务的所有消息
+Get all messages for a task
 
-**请求**：
+**Request**:
 
 ```http
 GET /api/v1/tasks/01HX.../messages?limit=100&offset=0
 ```
 
-**查询参数**：
+**Query Parameters**:
 
-| 参数 | 类型 | 必填 | 说明 |
+| Parameter | Type | Required | Description |
 |------|------|------|------|
-| `limit` | number | 否 | 返回数量限制（默认 100） |
-| `offset` | number | 否 | 分页偏移量（默认 0） |
+| `limit` | number | No | Limit number of results (default 100) |
+| `offset` | number | No | Pagination offset (default 0) |
 
-**响应**：
+**Response**:
 
 ```json
 [
@@ -380,7 +380,7 @@ GET /api/v1/tasks/01HX.../messages?limit=100&offset=0
     "id": "01HZ...",
     "taskId": "01HX...",
     "senderType": "agent",
-    "content": "好的，我来帮你写一篇关于 TypeScript 的博客...",
+    "content": "好的,我来帮你写一篇关于 TypeScript 的博客...",
     "timestamp": 1708070750000
   },
   {
@@ -393,31 +393,31 @@ GET /api/v1/tasks/01HX.../messages?limit=100&offset=0
 ]
 ```
 
-**senderType 说明**：
+**senderType Description**:
 
-- `user` - 用户发送的消息
-- `agent` - AI 回复的消息
-- `system` - 系统消息（如任务状态变更）
+- `user` - Message sent by user
+- `agent` - Message replied by AI
+- `system` - System message (such as task status changes)
 
-**错误**：
+**Errors**:
 
-- `404 Not Found` - 任务不存在
+- `404 Not Found` - Task does not exist
 
 ---
 
-### 系统信息
+### System Information
 
 #### GET /api/v1/health
 
-健康检查
+Health check
 
-**请求**：
+**Request**:
 
 ```http
 GET /api/v1/health
 ```
 
-**响应**：
+**Response**:
 
 ```json
 {
@@ -435,20 +435,20 @@ GET /api/v1/health
 
 ## 📡 Server-Sent Events (SSE)
 
-### 全局事件流
+### Global Event Stream
 
 #### GET /api/v1/events
 
-订阅全局事件（所有任务的状态变化）
+Subscribe to global events (status changes for all tasks)
 
-**请求**：
+**Request**:
 
 ```http
 GET /api/v1/events
 Accept: text/event-stream
 ```
 
-**响应**：
+**Response**:
 
 ```
 event: task.created
@@ -461,15 +461,15 @@ event: message.created
 data: {"taskId":"01HX...","message":{"id":"01HY...","senderType":"user","content":"你好",...}}
 ```
 
-**事件类型**：
+**Event Types**:
 
-| 事件 | Payload | 说明 |
+| Event | Payload | Description |
 |------|---------|------|
-| `task.created` | `{ task: Task }` | 新任务创建 |
-| `task.updated` | `{ taskId: string, task: Task }` | 任务状态更新 |
-| `message.created` | `{ taskId: string, message: Message }` | 新消息创建 |
+| `task.created` | `{ task: Task }` | New task created |
+| `task.updated` | `{ taskId: string, task: Task }` | Task status updated |
+| `message.created` | `{ taskId: string, message: Message }` | New message created |
 
-**客户端示例**：
+**Client Example**:
 
 ```typescript
 const eventSource = new EventSource('/api/v1/events');
@@ -489,13 +489,13 @@ eventSource.addEventListener('message.created', (e) => {
   console.log('新消息:', taskId, message);
 });
 
-// 断开连接
+// Disconnect
 eventSource.close();
 ```
 
-**断线重连**：
+**Reconnection**:
 
-浏览器会自动重连，支持 `Last-Event-ID` 头恢复断点：
+Browser will automatically reconnect, supports `Last-Event-ID` header for resuming from breakpoint:
 
 ```http
 GET /api/v1/events
@@ -503,20 +503,20 @@ Accept: text/event-stream
 Last-Event-ID: 1234567890
 ```
 
-### 任务级别事件流
+### Task-level Event Stream
 
 #### GET /api/v1/tasks/:id/events
 
-订阅单个任务的详细事件（包括执行日志、中间结果等）
+Subscribe to detailed events for a single task (including execution logs, intermediate results, etc.)
 
-**请求**：
+**Request**:
 
 ```http
 GET /api/v1/tasks/01HX.../events
 Accept: text/event-stream
 ```
 
-**响应**：
+**Response**:
 
 ```
 event: task.log
@@ -532,35 +532,35 @@ event: task.error
 data: {"message":"执行失败: 网络超时"}
 ```
 
-**事件类型**：
+**Event Types**:
 
-| 事件 | Payload | 说明 |
+| Event | Payload | Description |
 |------|---------|------|
-| `task.log` | `{ level: string, message: string }` | 执行日志 |
-| `task.progress` | `{ percent: number, message: string }` | 进度更新 |
-| `task.result` | `{ content: string }` | 中间结果 |
-| `task.error` | `{ message: string }` | 错误信息 |
+| `task.log` | `{ level: string, message: string }` | Execution log |
+| `task.progress` | `{ percent: number, message: string }` | Progress update |
+| `task.result` | `{ content: string }` | Intermediate result |
+| `task.error` | `{ message: string }` | Error message |
 
-**注意**：
-- 任务完成后事件流不会自动关闭
-- 客户端应在离开页面时手动关闭 EventSource
+**Notes**:
+- Event stream does not automatically close after task completion
+- Client should manually close EventSource when leaving the page
 
 ---
 
-## 🔐 错误处理
+## 🔐 Error Handling
 
-### HTTP 状态码
+### HTTP Status Codes
 
-| 状态码 | 说明 |
+| Status Code | Description |
 |--------|------|
-| `200 OK` | 请求成功 |
-| `201 Created` | 资源创建成功 |
-| `400 Bad Request` | 请求参数错误 |
-| `404 Not Found` | 资源不存在 |
-| `409 Conflict` | 资源冲突（如 ID 重复）|
-| `500 Internal Server Error` | 服务器内部错误 |
+| `200 OK` | Request successful |
+| `201 Created` | Resource created successfully |
+| `400 Bad Request` | Invalid request parameters |
+| `404 Not Found` | Resource does not exist |
+| `409 Conflict` | Resource conflict (e.g., duplicate ID) |
+| `500 Internal Server Error` | Internal server error |
 
-### 错误响应格式
+### Error Response Format
 
 ```json
 {
@@ -571,23 +571,23 @@ data: {"message":"执行失败: 网络超时"}
 
 ---
 
-## 📊 使用示例
+## 📊 Usage Examples
 
-### 完整对话流程
+### Complete Conversation Flow
 
 ```typescript
-// 1. 获取 agents 列表
+// 1. Get list of agents
 const agents = await fetch('/api/v1/agents').then(r => r.json());
 const mainAgent = agents.find(a => a.id === 'main');
 
-// 2. 创建任务并发送第一条消息
+// 2. Create task and send first message
 const { taskId } = await fetch(`/api/v1/tasks/${mainAgent.id}/quick`, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ message: '帮我写一篇博客' })
 }).then(r => r.json());
 
-// 3. 订阅全局事件流
+// 3. Subscribe to global event stream
 const es = new EventSource('/api/v1/events');
 
 es.addEventListener('message.created', (e) => {
@@ -602,68 +602,68 @@ es.addEventListener('message.created', (e) => {
 es.addEventListener('task.updated', (e) => {
   const { taskId: updTaskId, task } = JSON.parse(e.data);
   if (updTaskId === taskId && task.status === 'completed') {
-    console.log('任务完成！');
+    console.log('任务完成!');
   }
 });
 
-// 4. 续接对话
+// 4. Continue conversation
 await fetch(`/api/v1/tasks/${taskId}/messages`, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ content: '请添加代码示例' })
 });
 
-// 5. 取消任务
+// 5. Cancel task
 await fetch(`/api/v1/tasks/${taskId}`, {
   method: 'PATCH',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ status: 'cancelled' })
 });
 
-// 6. 清理
+// 6. Cleanup
 es.close();
 ```
 
 ---
 
-## 🧪 测试 API
+## 🧪 Testing API
 
-### 使用 curl
+### Using curl
 
 ```bash
-# 获取 agents
+# Get agents
 curl http://localhost:3001/api/v1/agents
 
-# 创建 agent
+# Create agent
 curl -X POST http://localhost:3001/api/v1/agents \
   -H "Content-Type: application/json" \
   -d '{"id":"test","name":"测试","model":"claude-opus-4-6"}'
 
-# 快速创建任务
+# Quick create task
 curl -X POST http://localhost:3001/api/v1/tasks/main/quick \
   -H "Content-Type: application/json" \
   -d '{"message":"你好"}'
 
-# 订阅 SSE
+# Subscribe to SSE
 curl -N http://localhost:3001/api/v1/events
 ```
 
-### 使用 Postman/Insomnia
+### Using Postman/Insomnia
 
-1. 导入 OpenAPI 规范（如果有）
-2. 设置 Base URL 为 `http://localhost:3001`
-3. 测试各个端点
+1. Import OpenAPI specification (if available)
+2. Set Base URL to `http://localhost:3001`
+3. Test each endpoint
 
 ---
 
-## 📚 相关文档
+## 📚 Related Documentation
 
-- [架构设计](./ARCHITECTURE.md) - 系统架构和数据模型
-- [部署指南](../DEPLOYMENT.md) - 生产环境部署
-- [贡献指南](../CONTRIBUTING.md) - 如何贡献代码
+- [Architecture Design](./ARCHITECTURE.md) - System architecture and data models
+- [Deployment Guide](../DEPLOYMENT.md) - Production environment deployment
+- [Contribution Guide](../CONTRIBUTING.md) - How to contribute code
 
 ---
 
 <div align="center">
-  <p>如有疑问，欢迎提 Issue 反馈</p>
+  <p>If you have any questions, feel free to submit an Issue</p>
 </div>

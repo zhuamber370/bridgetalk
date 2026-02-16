@@ -2,16 +2,15 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-always reply in chinese
 ## Project Overview
 
-OpenClaw Agent Native Communication Platform — a mobile-first H5/PWA chat application where users delegate tasks to Agents via natural language or quick-action buttons. Task execution progress and results are displayed inline in the conversation flow. All data is stored locally (zero cloud sync).
+BridgeTalk is a modern client for OpenClaw Gateway — a task-focused H5/PWA application where users create AI agents and delegate tasks through natural language. Each task represents an independent conversation, all communication is forwarded to OpenClaw Gateway, and agent contexts are completely isolated. All data is stored locally (zero cloud sync).
 
-The requirements specification is in `REQUIREMENTS.md` (written in Chinese).
+The requirements specification is in `REQUIREMENTS.md`.
 
 ## Current State
 
-This project is in the **specification phase**. `REQUIREMENTS.md` contains the full MVP v1.0 requirements. No source code, build system, or package configuration exists yet.
+This project is **fully implemented** with a working monorepo structure. `REQUIREMENTS.md` contains the v0.2.0 specifications (multi-agent architecture). The codebase includes both frontend (React + TypeScript) and backend (Express + SQLite).
 
 ## Architecture
 
