@@ -12,20 +12,20 @@ import { SubTaskCollapse } from '../SubTaskCollapse';
 import type { Task, Message, CoordinationData } from '@bridgetalk/shared';
 
 export interface ConversationPanelProps {
-  /** 任务 ID */
+  /** Task ID */
   taskId: string;
-  /** 返回按钮点击回调（Mobile）*/
+  /** Back button click callback (Mobile) */
   onBack?: () => void;
 }
 
 /**
- * 重构后的对话/详情面板
- * 
- * 改进点：
- * 1. 使用新的MessageItem组件
- * 2. 更好的空状态设计
- * 3. 平滑的滚动动画
- * 4. 改进的视觉层次
+ * Refactored conversation/detail panel
+ *
+ * Improvements:
+ * 1. Use new MessageItem component
+ * 2. Better empty state design
+ * 3. Smooth scroll animation
+ * 4. Improved visual hierarchy
  */
 export function ConversationPanel({ taskId, onBack }: ConversationPanelProps) {
   const { t } = useTranslation();
@@ -37,7 +37,7 @@ export function ConversationPanel({ taskId, onBack }: ConversationPanelProps) {
   const task = tasks.find((t) => t.id === taskId);
   const messages = messagesByTask[taskId] ?? [];
 
-  // 子任务相关
+  // Sub-task related
   const isSubTask = !!task?.parentTaskId;
   const parentTask = isSubTask ? tasks.find((t) => t.id === task.parentTaskId) : null;
   const parentAgent = parentTask ? agents.find((a) => a.id === parentTask.agentId) : null;
@@ -54,23 +54,23 @@ export function ConversationPanel({ taskId, onBack }: ConversationPanelProps) {
     return () => clearInterval(timer);
   }, [taskId, dispatch]);
 
-  // 首次加载时立即跳到底部
+  // Jump to bottom immediately on first load
   useEffect(() => {
     if (messages.length > 0 && messagesContainerRef.current) {
       messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
     }
   }, [taskId]);
 
-  // 新消息到达时平滑滚动到底部
+  // Smooth scroll to bottom when new messages arrive
   useEffect(() => {
     if (messages.length > 0 && messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages.length]);
 
-  // 发送消息
+  // Send message
   const handleSendMessage = async (text: string) => {
-    // 乐观更新
+    // Optimistic update
     const optimisticMsg: Message = {
       id: `tmp_${Date.now()}`,
       taskId,
@@ -88,7 +88,7 @@ export function ConversationPanel({ taskId, onBack }: ConversationPanelProps) {
     }
   };
 
-  // 修改标题
+  // Modify title
   const handleTitleChange = async (newTitle: string) => {
     if (!task) return;
     try {
@@ -99,7 +99,7 @@ export function ConversationPanel({ taskId, onBack }: ConversationPanelProps) {
     }
   };
 
-  // 删除任务
+  // Delete task
   const handleDelete = async () => {
     try {
       await deleteTask(taskId);
@@ -138,7 +138,7 @@ export function ConversationPanel({ taskId, onBack }: ConversationPanelProps) {
         onDelete={handleDelete}
       />
 
-      {/* 子任务提示条 */}
+      {/* Sub-task banner */}
       <AnimatePresence>
         {isSubTask && parentTask && (
           <motion.div
@@ -203,7 +203,7 @@ export function ConversationPanel({ taskId, onBack }: ConversationPanelProps) {
         ) : (
           <>
             {messages.map((msg, index) => {
-              // 判断是否为连续消息
+              // Check if consecutive message
               const prevMessage = index > 0 ? messages[index - 1] : undefined;
               const isGrouped = Boolean(
                 prevMessage &&
@@ -212,7 +212,7 @@ export function ConversationPanel({ taskId, onBack }: ConversationPanelProps) {
                 msg.timestamp - prevMessage.timestamp < 60000
               );
 
-              // 协调消息特殊处理：如果有 subTaskId，渲染折叠区域
+              // Special handling for coordination messages: if subTaskId exists, render collapse area
               if (msg.messageType === 'coordination') {
                 try {
                   const coordData = JSON.parse(msg.content) as CoordinationData;
@@ -227,7 +227,7 @@ export function ConversationPanel({ taskId, onBack }: ConversationPanelProps) {
                     </div>
                   );
                 } catch {
-                  // 解析失败，降级为普通消息
+                  // Parse failed, fallback to regular message
                 }
               }
 

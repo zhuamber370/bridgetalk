@@ -15,7 +15,7 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
   return res.json();
 }
 
-// ─── Agent API ───
+// ── Agent API ──
 
 export async function listAgents(): Promise<Agent[]> {
   return request<Agent[]>(`${BASE}/agents`);
@@ -32,7 +32,7 @@ export async function getAgent(id: string): Promise<Agent> {
   return request<Agent>(`${BASE}/agents/${id}`);
 }
 
-// ─── OpenClaw API ───
+// ── OpenClaw API ──
 
 export interface OpenClawModelInfo {
   id: string;
@@ -44,7 +44,7 @@ export async function listOpenClawModels(): Promise<OpenClawModelInfo[]> {
   return request<OpenClawModelInfo[]>(`${BASE}/openclaw/models`);
 }
 
-// ─── Task API ───
+// ── Task API ──
 
 export async function createTask(content: string, agentId?: string): Promise<Task> {
   return request<Task>(`${BASE}/tasks`, {

@@ -53,7 +53,7 @@ export function useResponsive(): ResponsiveState {
       });
     };
 
-    // 使用 debounce 优化性能
+    // Use debounce to optimize performance
     let timeoutId: number;
     const debouncedResize = () => {
       clearTimeout(timeoutId);

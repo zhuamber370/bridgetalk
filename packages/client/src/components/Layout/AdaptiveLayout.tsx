@@ -3,31 +3,31 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useResponsive } from '../../lib/hooks';
 
 export interface AdaptiveLayoutProps {
-  /** 左侧边栏（Desktop显示） */
+  /** Left sidebar (Desktop display) */
   sidebar?: ReactNode;
-  /** 侧边栏是否折叠 */
+  /** Whether sidebar is collapsed */
   sidebarCollapsed?: boolean;
-  /** 中间任务列表 */
+  /** Middle task list */
   inbox: ReactNode;
-  /** 右侧内容区域 */
+  /** Right content area */
   content?: ReactNode;
-  /** 底部导航（Mobile显示） */
+  /** Bottom navigation (Mobile display) */
   bottomNav?: ReactNode;
-  /** 移动端是否显示Inbox（否则显示Content） */
+  /** Whether to show Inbox on mobile (otherwise show Content) */
   showInboxOnMobile?: boolean;
 }
 
 /**
- * 自适应三栏布局
- * 
+ * Adaptive three-column layout
+ *
  * Desktop (≥1024px): Sidebar + Inbox + Content
- * Tablet (640-1023px): Inbox + Content（无Sidebar）
- * Mobile (<640px): 单栏 + 底部导航
- * 
- * 改进点：
- * 1. 使用CSS Grid替代Flexbox，更灵活的布局控制
- * 2. 使用Framer Motion实现平滑过渡
- * 3. 响应式断点优化
+ * Tablet (640-1023px): Inbox + Content (no Sidebar)
+ * Mobile (<640px): Single column + bottom navigation
+ *
+ * Improvements:
+ * 1. Use CSS Grid instead of Flexbox for more flexible layout control
+ * 2. Use Framer Motion for smooth transitions
+ * 3. Responsive breakpoint optimization
  */
 export function AdaptiveLayout({
   sidebar,
@@ -39,7 +39,7 @@ export function AdaptiveLayout({
 }: AdaptiveLayoutProps) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
 
-  // Mobile: 单栏布局 + 底部导航
+  // Mobile: Single column layout + bottom navigation
   if (isMobile) {
     return (
       <div className="flex flex-col h-full bg-[var(--color-bg)]">
@@ -85,11 +85,11 @@ export function AdaptiveLayout({
     );
   }
 
-  // Tablet: 两栏布局（Inbox + Content）
+  // Tablet: Two-column layout (Inbox + Content)
   if (isTablet) {
     return (
       <div className="flex h-full bg-[var(--color-bg)]">
-        {/* 任务列表 - 使用百分比宽度 */}
+        {/* Task list - use percentage width */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -99,7 +99,7 @@ export function AdaptiveLayout({
           {inbox}
         </motion.div>
 
-        {/* 内容区域 */}
+        {/* Content area */}
         <div className="flex-1 overflow-hidden bg-white">
           {content || (
             <div className="flex items-center justify-center h-full bg-[var(--color-bg-secondary)]">
@@ -134,10 +134,10 @@ export function AdaptiveLayout({
     );
   }
 
-  // Desktop: 三栏布局（Sidebar + Inbox + Content）
+  // Desktop: Three-column layout (Sidebar + Inbox + Content)
   return (
     <div className="flex h-full bg-[var(--color-bg)]">
-      {/* Agent侧边栏 */}
+      {/* Agent sidebar */}
       {sidebar && (
         <motion.div
           initial={false}
@@ -155,12 +155,12 @@ export function AdaptiveLayout({
         </motion.div>
       )}
 
-      {/* 任务列表 - 加宽到 400px */}
+      {/* Task list - widened to 400px */}
       <div className="w-[400px] shrink-0 border-r border-[var(--color-border)] bg-white overflow-hidden">
         {inbox}
       </div>
 
-      {/* 内容区域 */}
+      {/* Content area */}
       <div className="flex-1 overflow-hidden bg-white">
         {content || (
           <div className="flex items-center justify-center h-full bg-[var(--color-bg-secondary)]">

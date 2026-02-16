@@ -124,7 +124,7 @@ function reducer(state: AppState, action: Action): AppState {
       const existing = state.messagesByTask[taskId] ?? [];
       // Avoid duplicate
       if (existing.some((m) => m.id === action.message.id)) return state;
-      // 真实消息到达时，清除同任务下的乐观消息（tmp_ 前缀）
+      // When real message arrives, clear optimistic messages (tmp_ prefix) for same task
       const isTmp = action.message.id.startsWith('tmp_');
       const filtered = isTmp
         ? existing

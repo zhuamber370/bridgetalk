@@ -6,7 +6,7 @@ import { useAppState, useDispatch } from '../lib/store';
 import { listAgents } from '../lib/api';
 
 /**
- * 首页 - 自动重定向到第一个 Agent 的 Inbox
+ * Home page - Auto-redirect to the first Agent's Inbox
  */
 export function AgentListPage() {
   const { agents } = useAppState();
@@ -20,7 +20,7 @@ export function AgentListPage() {
       .then((data) => {
         dispatch({ type: 'SET_AGENTS', agents: data });
 
-        // 如果有 Agent，自动重定向到第一个
+        // If agents exist, auto-redirect to the first one
         if (data.length > 0) {
           navigate(`/agents/${data[0].id}`, { replace: true });
         }
@@ -28,7 +28,7 @@ export function AgentListPage() {
       .catch(console.error);
   }, [dispatch, navigate]);
 
-  // 加载中状态
+  // Loading state
   return (
     <div className="flex flex-col items-center justify-center h-full">
       <motion.div

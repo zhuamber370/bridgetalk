@@ -2,24 +2,24 @@ import { forwardRef, ButtonHTMLAttributes } from 'react';
 import { Loader2 } from 'lucide-react';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  /** 按钮尺寸 */
+  /** Button size */
   size?: 'sm' | 'md' | 'lg' | 'icon';
-  /** 视觉样式 */
+  /** Visual variant */
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
-  /** 是否加载中 */
+  /** Whether loading */
   loading?: boolean;
-  /** 是否为图标按钮（圆形）*/
+  /** Whether is icon button (circular) */
   icon?: boolean;
 }
 
 /**
- * 统一的按钮组件
+ * Unified button component
  *
- * 设计原则：
- * 1. 统一的尺寸系统（sm/md/lg/icon）
- * 2. 清晰的视觉层次（primary/secondary/ghost）
- * 3. 移动端友好（≥44px 触摸目标）
- * 4. 精致的交互反馈
+ * Design principles:
+ * 1. Unified sizing system (sm/md/lg/icon)
+ * 2. Clear visual hierarchy (primary/secondary/ghost)
+ * 3. Mobile-friendly (≥44px touch target)
+ * 4. Refined interaction feedback
  */
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
@@ -35,7 +35,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref
   ) => {
-    // 尺寸映射
+    // Size mapping
     const sizeClasses = {
       sm: icon ? 'w-9 h-9' : 'px-4 py-2 text-[14px]',
       md: icon ? 'w-11 h-11' : 'px-5 py-3 text-[15px]',
@@ -43,7 +43,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       icon: 'w-11 h-11', // 默认图标尺寸
     };
 
-    // 样式映射
+    // Variant mapping
     const variantClasses = {
       primary:
         'bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] active:bg-[var(--color-primary-dark)] shadow-md hover:shadow-lg',

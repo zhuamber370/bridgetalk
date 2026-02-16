@@ -25,7 +25,7 @@ export function TaskDetailPage() {
   const task = tasks.find((t) => t.id === id);
   const messages = id ? messagesByTask[id] ?? [] : [];
 
-  // 🆕 子任务相关数据
+  // Sub-task related data
   const isSubTask = !!task?.parentTaskId;
   const parentTask = isSubTask ? tasks.find(t => t.id === task.parentTaskId) : null;
   const parentAgent = parentTask ? agents.find(a => a.id === parentTask.agentId) : null;
@@ -73,7 +73,7 @@ export function TaskDetailPage() {
     setSending(true);
     setInput('');
 
-    // 乐观更新：立即显示用户消息
+    // Optimistic update: display user message immediately
     const optimisticMsg: Message = {
       id: `tmp_${Date.now()}`,
       taskId: id,
@@ -172,7 +172,7 @@ export function TaskDetailPage() {
         {task && <TaskStatusBadge status={task.status} />}
       </div>
 
-      {/* 🆕 子任务提示条 */}
+      {/* Sub-task banner */}
       {isSubTask && parentTask && (
         <div className="mx-4 mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
           <div className="flex items-center gap-2 text-sm text-amber-800 mb-2">
@@ -200,7 +200,7 @@ export function TaskDetailPage() {
           </div>
         ) : (
           messages.map((msg) => {
-            // 🆕 协调消息特殊处理：如果有 subTaskId，渲染折叠区域
+            // Special handling for coordination messages: if subTaskId exists, render collapse area
             if (msg.messageType === 'coordination') {
               try {
                 const coordData = JSON.parse(msg.content) as CoordinationData;
@@ -213,7 +213,7 @@ export function TaskDetailPage() {
                   </div>
                 );
               } catch {
-                // 解析失败，降级为普通消息
+                // Parse failed, fallback to regular message
               }
             }
 

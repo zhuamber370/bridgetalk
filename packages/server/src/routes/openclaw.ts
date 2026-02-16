@@ -4,7 +4,7 @@ import { listAvailableModels } from '../services/openclaw-config.js';
 export function createOpenClawRoutes(): Router {
   const router = Router();
 
-  // GET /api/v1/openclaw/models — 列出可用的模型
+  // GET /api/v1/openclaw/models — List available models
   router.get('/models', (_req, res) => {
     try {
       const models = listAvailableModels();

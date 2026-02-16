@@ -14,11 +14,11 @@ export class TaskExecutor {
     private adapter: Adapter,
     private broadcaster: EventBroadcaster,
   ) {
-    // 🆕 注册全局 chat 事件监听器
+    // 🆕 Register global chat event listener
     this.setupGlobalChatListener();
   }
 
-  // 🆕 设置全局监听器，捕获所有 agent 的活动
+  // 🆕 Set up global listener to capture all agent activity
   private setupGlobalChatListener(): void {
     if ('setGlobalChatListener' in this.adapter) {
       (this.adapter as any).setGlobalChatListener((payload: any) => {
@@ -27,42 +27,42 @@ export class TaskExecutor {
     }
   }
 
-  // 🆕 处理全局 chat 事件（检测子 agent 活动 + 路由消息）
+  // 🆕 Handle global chat event (detect sub-agent activity + route messages)
   private handleGlobalChatEvent(payload: any): void {
     const sessionKey = payload.sessionKey as string;
     if (!sessionKey) return;
 
-    // 解析 sessionKey：格式为 "agent:{agentId}:{parentId}"
+    // Parse sessionKey: format is "agent:{agentId}:{parentId}"
     const match = sessionKey.match(/^agent:([^:]+):(.+)$/);
     if (!match) return;
 
     const [, agentId, parentId] = match;
 
-    // 🆕 调试日志
+    // 🆕 Debug log
     logger.debug(`[Global] sessionKey: ${sessionKey}, state: ${payload.state}, agentId: ${agentId}`);
 
-    // 如果是 main agent，跳过（已经有专门的监听器）
+    // If it's main agent, skip (already has dedicated listener)
     if (agentId === 'main' || agentId === parentId) return;
 
-    // 检查是否是我们关心的子 agent
+    // Check if this is a sub-agent we care about
     const allowedAgents = ['coder', 'qa', 'writer'];
     if (!allowedAgents.includes(agentId)) return;
 
-    // 🆕 检查是否已经创建过子任务
+    // 🆕 Check if subtask was already created
     const existingTaskId = this.sessionToTask.get(sessionKey);
 
     if (!existingTaskId) {
-      // 第一次检测到这个 sessionKey，创建子任务
-      logger.debug(`[TaskExecutor] 检测到新的子 agent 活动: ${agentId} (session: ${sessionKey})`);
+      // First time detecting this sessionKey, create subtask
+      logger.debug(`[TaskExecutor] Detected new sub-agent activity: ${agentId} (session: ${sessionKey})`);
       this.createSubTaskFromSession(sessionKey, agentId, payload);
       return;
     }
 
-    // 子任务标题已在创建时设置好，不再从消息中更新
+    // Subtask title was set at creation time, no longer update from messages
 
-    // 🆕 已有子任务，路由消息到该任务
+    // 🆕 Existing subtask, route message to that task
     if (payload.state === 'final') {
-      // 收到最终消息，写入子任务
+      // Received final message, write to subtask
       const content = this.extractTextContent(payload.message);
       if (content) {
         const msg: Message = {
@@ -77,13 +77,13 @@ export class TaskExecutor {
         this.repo.createMessage(msg);
         this.broadcaster.broadcast('message.created', { taskId: existingTaskId, message: msg }, existingTaskId);
 
-        // 更新子任务状态为 completed
+        // Update subtask status to completed
         const updated = this.repo.updateTask(existingTaskId, { status: 'completed', completedAt: nowMs() });
         if (updated) {
           this.broadcaster.broadcast('task.updated', { taskId: existingTaskId, task: updated }, existingTaskId);
         }
 
-        logger.debug(`[TaskExecutor] 子任务完成: ${existingTaskId} (${agentId})`);
+        logger.debug(`[TaskExecutor] Subtask completed: ${existingTaskId} (${agentId})`);
       }
     }
   }
@@ -124,15 +124,15 @@ export class TaskExecutor {
 
     let subTaskId: string | undefined;
 
-    // 如果是 task_delegated，创建子任务
+    // If task_delegated, create subtask
     if (coordData.type === 'task_delegated' && coordData.to) {
       const parentTask = this.repo.getTask(taskId);
       const subTask: Task = {
         id: generateId(),
-        agentId: coordData.to,           // 子任务归属目标 agent
-        parentTaskId: taskId,             // 关联主任务
-        title: parentTask?.title || coordData.summary, // 使用主任务标题
-        titleLocked: false,               // 允许标题动态跟随主任务
+        agentId: coordData.to,           // subtask belongs to target agent
+        parentTaskId: taskId,             // associate with main task
+        title: parentTask?.title || coordData.summary, // use main task title
+        titleLocked: false,               // allow title to dynamically follow main task
         status: 'running',
         createdAt: nowMs(),
         updatedAt: nowMs(),
@@ -143,11 +143,11 @@ export class TaskExecutor {
 
       subTaskId = subTask.id;
 
-      // 创建委派消息（写入子任务）
+      // Create delegation message (write to subtask)
       const delegateMsg: Message = {
         id: generateId(),
         taskId: subTask.id,
-        senderType: 'user',  // 主 agent 在子任务中扮演 user 角色
+        senderType: 'user',  // main agent plays user role in subtask
         senderAgentId: coordData.from,
         content: coordData.summary,
         timestamp: nowMs(),
@@ -155,20 +155,20 @@ export class TaskExecutor {
       this.repo.createMessage(delegateMsg);
       this.broadcaster.broadcast('message.created', { taskId: subTask.id, message: delegateMsg }, subTask.id);
 
-      // 🆕 立即执行子任务（后台异步执行，不阻塞主任务）
+      // 🆕 Execute subtask immediately (background async execution, don't block main task)
       this.executeSubTask(subTask.id, coordData.summary).catch(err => {
         logger.error(`SubTask ${subTask.id} execution failed:`, err);
       });
     }
 
-    // 创建协调消息（写入主任务）
+    // Create coordination message (write to main task)
     const msg: Message = {
       id: generateId(),
       taskId,
       senderType: 'system',
       senderAgentId: coordData.from,
       messageType: 'coordination',
-      content: JSON.stringify({ ...coordData, subTaskId }),  // 包含 subTaskId
+      content: JSON.stringify({ ...coordData, subTaskId }),  // include subTaskId
       timestamp: nowMs(),
     };
 
@@ -262,7 +262,7 @@ export class TaskExecutor {
 
   // 🆕 Create subtask from session
   private createSubTaskFromSession(sessionKey: string, agentId: string, initialPayload: any): void {
-    // 🆕 查找当前 running 的 main agent 任务作为父任务
+    // 🆕 Find currently running main agent task as parent task
     const tasksResult = this.repo.listTasks();
     const runningMainTasks = tasksResult.items.filter(
       t => t.agentId === 'main' && t.status === 'running'
@@ -276,7 +276,7 @@ export class TaskExecutor {
     const subTask: Task = {
       id: generateId(),
       agentId,
-      parentTaskId: parentTask?.id, // 🆕 设置父任务 ID
+      parentTaskId: parentTask?.id, // 🆕 Set parent task ID
       title,
       titleLocked: false, // Allow title to dynamically follow parent task
       status: 'running',
@@ -287,13 +287,13 @@ export class TaskExecutor {
     this.repo.createTask(subTask);
     this.broadcaster.broadcast('task.created', { task: subTask });
 
-    // 记录 sessionKey → taskId 映射
+    // Record sessionKey → taskId mapping
     this.sessionToTask.set(sessionKey, subTask.id);
 
     logger.debug(`[TaskExecutor] Created subtask: ${subTask.id} (${agentId}, parent: ${parentTask?.id || 'none'}, session: ${sessionKey.substring(0, 20)}...)`);
   }
 
-  // 辅助方法：提取文本内容
+  // Helper method: extract text content
   private extractTextContent(message: any): string {
     if (!message) return '';
     if (typeof message === 'string') return message;

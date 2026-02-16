@@ -36,7 +36,7 @@ export function CreateAgentModal({ isOpen, onClose }: CreateAgentModalProps) {
   useEffect(() => {
     if (isOpen) {
       listOpenClawModels().then(setAvailableModels).catch(console.error);
-      // 重置表单数据
+      // Reset form data
       setFormId('');
       setFormName('');
       setFormDesc('');
@@ -69,17 +69,17 @@ export function CreateAgentModal({ isOpen, onClose }: CreateAgentModalProps) {
       });
       dispatch({ type: 'ADD_AGENT', agent });
 
-      // 重置表单
+      // Reset form
       setFormId('');
       setFormName('');
       setFormDesc('');
       setFormModel('');
       setError('');
 
-      // 关闭模态框
+      // Close modal
       onClose();
 
-      // 跳转到新创建的Agent
+      // Navigate to newly created Agent
       navigate(`/agents/${agent.id}`);
     } catch (err) {
       setError((err as Error).message);
@@ -94,7 +94,7 @@ export function CreateAgentModal({ isOpen, onClose }: CreateAgentModalProps) {
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* 遮罩 */}
+          {/* Overlay */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -103,7 +103,7 @@ export function CreateAgentModal({ isOpen, onClose }: CreateAgentModalProps) {
             className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50"
           />
 
-          {/* 模态框 */}
+          {/* Modal */}
           <motion.div
             initial={{ opacity: 0, y: 100, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -111,7 +111,7 @@ export function CreateAgentModal({ isOpen, onClose }: CreateAgentModalProps) {
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             className="fixed inset-x-0 bottom-0 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-full sm:max-w-xl bg-white sm:rounded-3xl rounded-t-3xl z-50 max-h-[95vh] sm:max-h-[90vh] overflow-hidden shadow-2xl"
           >
-            {/* 拖动条（移动端）*/}
+            {/* Drag bar (mobile) */}
             <div className="flex justify-center pt-4 pb-3 sm:hidden">
               <div className="w-12 h-1.5 bg-[var(--color-slate-300)] rounded-full" />
             </div>
@@ -158,7 +158,7 @@ export function CreateAgentModal({ isOpen, onClose }: CreateAgentModalProps) {
                 </p>
               </div>
 
-              {/* 名称 */}
+              {/* Name */}
               <div>
                 <label className="block text-[15px] font-semibold text-[var(--color-text)] mb-3">
                   {t('createAgent.displayName')} *
@@ -172,7 +172,7 @@ export function CreateAgentModal({ isOpen, onClose }: CreateAgentModalProps) {
                 />
               </div>
 
-              {/* 描述 */}
+              {/* Description */}
               <div>
                 <label className="block text-[15px] font-semibold text-[var(--color-text)] mb-3">
                   {t('createAgent.description')}
@@ -186,7 +186,7 @@ export function CreateAgentModal({ isOpen, onClose }: CreateAgentModalProps) {
                 />
               </div>
 
-              {/* 模型 */}
+              {/* Model */}
               <div className="pb-2">
                 <label className="block text-[15px] font-semibold text-[var(--color-text)] mb-3">
                   {t('createAgent.model')}

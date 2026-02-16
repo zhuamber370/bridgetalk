@@ -1,6 +1,6 @@
 /**
- * 简单的日志工具
- * 根据 NODE_ENV 环境变量控制日志输出
+ * Simple logging utility
+ * Controls log output based on NODE_ENV environment variable
  */
 
 const DEBUG = process.env.NODE_ENV !== 'production';

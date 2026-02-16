@@ -4,24 +4,24 @@ import { Send } from 'lucide-react';
 import { Button, Textarea } from '../ui';
 
 export interface MessageInputProps {
-  /** 消息提交回调 */
+  /** Message submit callback */
   onSubmit: (text: string) => void | Promise<void>;
-  /** placeholder 文本 */
+  /** Placeholder text */
   placeholder?: string;
-  /** 是否禁用 */
+  /** Whether disabled */
   disabled?: boolean;
-  /** 最大字符数 */
+  /** Maximum character count */
   maxLength?: number;
 }
 
 /**
- * 消息输入框 - 使用统一组件库
+ * Message input component - Using unified component library
  *
- * 改进点：
- * 1. 使用 UI 组件库（Button + Textarea）
- * 2. 统一的视觉样式和尺寸
- * 3. 完整的可访问性支持
- * 4. 优化的性能（移除 Framer Motion）
+ * Improvements:
+ * 1. Use UI component library (Button + Textarea)
+ * 2. Unified visual style and sizing
+ * 3. Complete accessibility support
+ * 4. Optimized performance (removed Framer Motion)
  */
 export function MessageInput({
   onSubmit,
@@ -51,12 +51,12 @@ export function MessageInput({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    // Shift + Enter: 换行
+    // Shift + Enter: new line
     if (e.key === 'Enter' && e.shiftKey) {
       return;
     }
 
-    // Enter: 发送
+    // Enter: send
     if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
       e.preventDefault();
       handleSubmit();

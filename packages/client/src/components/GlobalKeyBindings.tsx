@@ -3,27 +3,27 @@ import { useDispatch } from '../lib/store';
 import { useNavigate } from 'react-router-dom';
 
 /**
- * 全局快捷键绑定组件
- * 应在应用根部挂载
+ * Global keyboard bindings component
+ * Should be mounted at application root
  */
 export function GlobalKeyBindings() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   useKeyboard([
-    // Cmd/Ctrl + /: 切换侧边栏
+    // Cmd/Ctrl + /: Toggle sidebar
     globalKeyBindings.toggleSidebar(() => {
       dispatch({ type: 'TOGGLE_SIDEBAR' });
     }),
 
-    // Cmd/Ctrl + N: 新建任务（跳转到首页）
+    // Cmd/Ctrl + N: New task (navigate to home)
     globalKeyBindings.newTask(() => {
       navigate('/');
     }),
 
-    // Escape: 关闭模态框/返回（这里暂时不实现，由各组件自己处理）
+    // Escape: Close modal/go back (not implemented here, handled by individual components)
     // globalKeyBindings.escape(() => {
-    //   // 各组件内部处理
+    //   // Handled internally by components
     // }),
   ]);
 

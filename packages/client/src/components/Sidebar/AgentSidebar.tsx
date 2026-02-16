@@ -8,20 +8,20 @@ import { CreateAgentModal } from '../CreateAgentModal';
 import type { Agent } from '@bridgetalk/shared';
 
 export interface AgentSidebarProps {
-  /** 是否折叠（显示图标模式）*/
+  /** Whether collapsed (icon mode) */
   collapsed?: boolean;
-  /** 折叠切换回调 */
+  /** Collapse toggle callback */
   onToggleCollapse?: () => void;
 }
 
 /**
- * 改进的Agent侧边栏
- * 
- * 改进点：
- * 1. 提升信息密度 - 显示更多有用信息
- * 2. 动画效果 - 平滑的展开/收起
- * 3. 视觉层次 - 更清晰的active状态
- * 4. 空状态优化 - 无Agent时的引导
+ * Improved Agent sidebar
+ *
+ * Improvements:
+ * 1. Increased information density - Show more useful information
+ * 2. Animation effects - Smooth expand/collapse
+ * 3. Visual hierarchy - Clearer active state
+ * 4. Empty state optimization - Guidance when no Agents
  */
 export function AgentSidebar({ collapsed = false, onToggleCollapse }: AgentSidebarProps) {
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -31,16 +31,16 @@ export function AgentSidebar({ collapsed = false, onToggleCollapse }: AgentSideb
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  // 计算每个Agent的统计数据
+  // Calculate statistics for each Agent
   const getAgentStats = (agentId: string) => {
     const agentTasks = tasks.filter((t) => t.agentId === agentId);
     const unreadCount = agentTasks.filter((t) => t.status === 'waiting').length;
     const activeCount = agentTasks.filter((t) => t.status === 'pending' || t.status === 'running').length;
-    
-    // 最后活跃时间
+
+    // Last active time
     const lastTask = agentTasks.sort((a, b) => b.updatedAt - a.updatedAt)[0];
     const lastActive = lastTask ? formatLastActive(lastTask.updatedAt) : null;
-    
+
     return { unreadCount, activeCount, lastActive };
   };
 
@@ -68,7 +68,7 @@ export function AgentSidebar({ collapsed = false, onToggleCollapse }: AgentSideb
     setShowCreateModal(true);
   };
 
-  // 生成Agent头像背景色（基于名称哈希）
+  // Generate Agent avatar background color (based on name hash)
   const getAvatarColor = (name: string): string => {
     const colors = [
       'bg-blue-500',
@@ -121,7 +121,7 @@ export function AgentSidebar({ collapsed = false, onToggleCollapse }: AgentSideb
         </motion.button>
       </div>
 
-      {/* Agent列表 */}
+      {/* Agent list */}
       <div className="flex-1 overflow-y-auto py-2 px-2">
         {agents.length === 0 ? (
           /* Empty state */
@@ -157,7 +157,7 @@ export function AgentSidebar({ collapsed = false, onToggleCollapse }: AgentSideb
                 }`}
                 title={collapsed ? agent.name : undefined}
               >
-                {/* 活跃指示器（左侧边框）*/}
+                {/* Active indicator (left border) */}
                 {isActive && (
                   <motion.div
                     layoutId="activeIndicator"
@@ -165,14 +165,14 @@ export function AgentSidebar({ collapsed = false, onToggleCollapse }: AgentSideb
                   />
                 )}
 
-                {/* Agent头像 */}
+                {/* Agent avatar */}
                 <div className={`shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold ${
                   isActive ? 'bg-white/20 text-white' : avatarColor
                 }`}>
                   {agent.name.slice(0, 1).toUpperCase()}
                 </div>
 
-                {/* Agent信息（展开状态）*/}
+                {/* Agent info (expanded state) */}
                 <AnimatePresence>
                   {!collapsed && (
                     <motion.div
@@ -189,7 +189,7 @@ export function AgentSidebar({ collapsed = false, onToggleCollapse }: AgentSideb
                           {agent.name}
                         </span>
                         
-                        {/* 未读徽章 */}
+                        {/* Unread badge */}
                         {stats.unreadCount > 0 && (
                           <span className={`shrink-0 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
                             isActive
@@ -213,7 +213,7 @@ export function AgentSidebar({ collapsed = false, onToggleCollapse }: AgentSideb
                   )}
                 </AnimatePresence>
 
-                {/* 折叠模式下的未读徽章（右上角）*/}
+                {/* Unread badge in collapsed mode (top right) */}
                 {collapsed && stats.unreadCount > 0 && (
                   <div className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[var(--color-error)] rounded-full flex items-center justify-center text-[10px] font-bold">
                     {stats.unreadCount > 9 ? '9+' : stats.unreadCount}

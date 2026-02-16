@@ -1,26 +1,26 @@
 import { forwardRef, TextareaHTMLAttributes, useEffect, useRef } from 'react';
 
 export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
-  /** 是否自动调整高度 */
+  /** Whether to auto-resize height */
   autoResize?: boolean;
-  /** 最小高度（px）*/
+  /** Minimum height (px) */
   minHeight?: number;
-  /** 最大高度（px）*/
+  /** Maximum height (px) */
   maxHeight?: number;
-  /** 是否显示字数统计 */
+  /** Whether to show character count */
   showCount?: boolean;
-  /** 最大字符数 */
+  /** Maximum character count */
   maxLength?: number;
 }
 
 /**
- * 统一的多行输入组件
+ * Unified multi-line input component
  *
- * 功能：
- * 1. 自动高度调整
- * 2. 字数统计（可选）
- * 3. 统一的视觉样式
- * 4. 完整的可访问性支持
+ * Features:
+ * 1. Auto height adjustment
+ * 2. Character count (optional)
+ * 3. Unified visual style
+ * 4. Complete accessibility support
  */
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
   (
@@ -40,7 +40,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
     const localRef = useRef<HTMLTextAreaElement>(null);
     const ref = (forwardedRef as any) || localRef;
 
-    // 自动调整高度
+    // Auto-adjust height
     useEffect(() => {
       if (autoResize && ref.current) {
         ref.current.style.height = 'auto';
@@ -89,7 +89,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           {...props}
         />
 
-        {/* 字数统计 */}
+        {/* Character count */}
         {showCount && maxLength && charCount > 0 && (
           <div
             className={`

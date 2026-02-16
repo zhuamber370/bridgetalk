@@ -77,28 +77,28 @@ export function AgentInboxPage() {
     }
   }, [taskId, dispatch]);
 
-  // 侧边栏折叠控制
+  // Sidebar collapse control
   const handleToggleSidebar = () => {
     dispatch({ type: 'TOGGLE_SIDEBAR' });
   };
 
-  // 任务点击
+  // Task click
   const handleTaskClick = (task: Task) => {
     if (isMobile) {
-      // Mobile: 导航到新页面
+      // Mobile: navigate to new page
       navigate(`/agents/${agentId}/tasks/${task.id}`);
     } else {
-      // Desktop/Tablet: 更新 URL
+      // Desktop/Tablet: update URL
       navigate(`/agents/${agentId}/tasks/${task.id}`, { replace: true });
     }
   };
 
-  // 返回
+  // Back
   const handleBack = () => {
     navigate(`/agents/${agentId}`);
   };
 
-  // 没有 Agent 时显示欢迎页
+  // Show welcome page when no Agent
   if (!agentId || agents.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full px-6">

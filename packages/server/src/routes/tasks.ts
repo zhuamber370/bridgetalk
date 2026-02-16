@@ -25,12 +25,12 @@ export function createTaskRoutes(
 ): Router {
   const router = Router();
 
-  // POST /api/v1/tasks — 创建任务并自动执行
+  // POST /api/v1/tasks — Create task and auto execute
   router.post('/', (req, res) => {
     try {
       const body = req.body as CreateTaskRequest;
       if (!body.content?.trim()) {
-        res.status(400).json({ error: '内容不能为空' });
+        res.status(400).json({ error: 'Content cannot be empty' });
         return;
       }
 
@@ -62,7 +62,7 @@ export function createTaskRoutes(
     }
   });
 
-  // GET /api/v1/tasks — 查询任务列表
+  // GET /api/v1/tasks — Query task list
   router.get('/', (req, res) => {
     try {
       const { status, limit, agentId } = req.query;
@@ -79,12 +79,12 @@ export function createTaskRoutes(
     }
   });
 
-  // GET /api/v1/tasks/:id — 获取任务详情
+  // GET /api/v1/tasks/:id — Get task details
   router.get('/:id', (req, res) => {
     try {
       const task = taskManager.getTask(req.params.id);
       if (!task) {
-        res.status(404).json({ error: '任务不存在' });
+        res.status(404).json({ error: 'Task does not exist' });
         return;
       }
       // Dynamically fill parent task title for subtasks
@@ -136,7 +136,7 @@ export function createTaskRoutes(
     try {
       const existing = taskManager.getTask(req.params.id);
       if (!existing) {
-        res.status(404).json({ error: '任务不存在' });
+        res.status(404).json({ error: 'Task does not exist' });
         return;
       }
       const { title } = req.body as { title?: string };
@@ -161,7 +161,7 @@ export function createTaskRoutes(
     try {
       const existing = taskManager.getTask(req.params.id);
       if (!existing) {
-        res.status(404).json({ error: '任务不存在' });
+        res.status(404).json({ error: 'Task does not exist' });
         return;
       }
       const task = taskManager.cancelTask(req.params.id);

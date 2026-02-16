@@ -3,7 +3,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-// 从项目根目录加载 .env（packages/server/src/ → 上三级）
+// Load .env from project root (packages/server/src/ → up 3 levels)
 dotenv.config({ path: resolve(__dirname, '../../../.env') });
 import express, { type Express } from 'express';
 import cors from 'cors';
@@ -27,7 +27,7 @@ const repo = new Repository(db);
 
 // ─── Services ───
 const adapter = new OpenClawAdapter();
-console.log(`[adapter] 使用: ${adapter.name}`);
+console.log(`[adapter] Using: ${adapter.name}`);
 const taskManager = new TaskManager(repo);
 const broadcaster = new EventBroadcaster();
 const executor = new TaskExecutor(repo, adapter, broadcaster);

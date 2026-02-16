@@ -13,8 +13,8 @@ export interface OpenClawAgentConfig {
 }
 
 export interface OpenClawModelInfo {
-  id: string;        // 如 'openai-codex/gpt-5.2'
-  alias?: string;    // 如 'plus'
+  id: string;        // e.g., 'openai-codex/gpt-5.2'
+  alias?: string;    // e.g., 'plus'
   isDefault?: boolean;
 }
 
@@ -52,21 +52,21 @@ function writeConfig(config: OpenClawConfig): void {
   writeFileSync(getConfigPath(), JSON.stringify(config, null, 2) + '\n');
 }
 
-/** 列出主 agent 可见的 agents（main 自身 + allowAgents 白名单） */
+/** List agents visible to main agent (main itself + allowAgents whitelist) */
 export function listConfiguredAgents(): OpenClawAgentConfig[] {
   const config = readConfig();
   const list = config.agents?.list ?? [];
 
-  // 找到 main agent 的 allowAgents 白名单
+  // Find main agent's allowAgents whitelist
   const mainAgent = list.find((a) => a.id === 'main' || a.default);
   const allowedIds = new Set(mainAgent?.subagents?.allowAgents ?? []);
-  // main 自身也是可用 agent
+  // main itself is also an available agent
   allowedIds.add('main');
 
   return list.filter((a) => allowedIds.has(a.id));
 }
 
-/** 列出 openclaw.json 中可用的模型 */
+/** List available models in openclaw.json */
 export function listAvailableModels(): OpenClawModelInfo[] {
   const config = readConfig();
   const defaults = config.agents?.defaults;
@@ -80,26 +80,26 @@ export function listAvailableModels(): OpenClawModelInfo[] {
   }));
 }
 
-/** 注册新 agent 到 openclaw.json，创建必要目录 */
+/** Register new agent to openclaw.json, create necessary directories */
 export function registerAgent(id: string, name: string, model?: string): void {
   const home = getOpenClawHome();
   const config = readConfig();
 
-  // 确保 agents.list 存在
+  // Ensure agents.list exists
   if (!config.agents) config.agents = {};
   if (!config.agents.list) config.agents.list = [];
 
-  // 已存在则跳过
+  // Skip if already exists
   if (config.agents.list.some((a) => a.id === id)) return;
 
-  // 使用指定模型，否则回退到默认模型
+  // Use specified model, otherwise fall back to default model
   const agentModel = model || config.agents.defaults?.model?.primary;
 
-  // 构造路径
+  // Construct paths
   const workspace = join(home, `workspace-${id}`);
   const agentDir = join(home, 'agents', id, 'agent');
 
-  // 添加到 agents.list
+  // Add to agents.list
   config.agents.list.push({
     id,
     name,
@@ -108,7 +108,7 @@ export function registerAgent(id: string, name: string, model?: string): void {
     ...(agentModel ? { model: agentModel } : {}),
   });
 
-  // 添加到 tools.agentToAgent.allow
+  // Add to tools.agentToAgent.allow
   if (!config.tools) config.tools = {};
   if (!config.tools.agentToAgent) config.tools.agentToAgent = { enabled: true };
   if (!config.tools.agentToAgent.allow) config.tools.agentToAgent.allow = [];
@@ -116,7 +116,7 @@ export function registerAgent(id: string, name: string, model?: string): void {
     config.tools.agentToAgent.allow.push(id);
   }
 
-  // 添加到 main 的 subagents.allowAgents
+  // Add to main's subagents.allowAgents
   const mainAgent = config.agents.list.find((a) => a.id === 'main' || a.default);
   if (mainAgent) {
     if (!mainAgent.subagents) mainAgent.subagents = {};
@@ -126,10 +126,10 @@ export function registerAgent(id: string, name: string, model?: string): void {
     }
   }
 
-  // 写回配置
+  // Write back config
   writeConfig(config);
 
-  // 创建目录
+  // Create directories
   mkdirSync(workspace, { recursive: true });
   mkdirSync(agentDir, { recursive: true });
   mkdirSync(join(home, 'agents', id, 'sessions'), { recursive: true });

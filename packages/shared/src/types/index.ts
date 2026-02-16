@@ -1,10 +1,10 @@
 // ─── Agent ───
 
 export interface Agent {
-  id: string;          // 如 'main', 'travel', 'code-review'
-  name: string;        // 显示名称
+  id: string;          // e.g., 'main', 'travel', 'code-review'
+  name: string;        // display name
   description?: string;
-  model?: string;      // 绑定的模型，如 'openai-codex/gpt-5.2'
+  model?: string;      // bound model, e.g., 'openai-codex/gpt-5.2'
   createdAt: number;
   updatedAt: number;
 }
@@ -22,8 +22,8 @@ export type TaskStatus = 'pending' | 'running' | 'completed' | 'failed' | 'waiti
 
 export interface Task {
   id: string;
-  agentId: string;       // 关联的 Agent
-  parentTaskId?: string; // 如果是子任务，指向主任务 ID
+  agentId: string;       // associated Agent
+  parentTaskId?: string; // if this is a subtask, points to the parent task ID
   title: string;
   titleLocked: boolean;
   status: TaskStatus;
@@ -42,27 +42,27 @@ export interface Message {
   id: string;
   taskId: string;
   senderType: SenderType;
-  senderAgentId?: string;      // 发送者 agent ID（如 'main', 'writer'）
-  messageType?: MessageType;    // 消息类型（默认 'chat'）
+  senderAgentId?: string;      // sender agent ID (e.g., 'main', 'writer')
+  messageType?: MessageType;    // message type (default 'chat')
   content: string;
   timestamp: number;
 }
 
-// 协调数据结构（存储在 coordination 消息的 content 中，JSON 格式）
+// Coordination data structure (stored in coordination message's content, JSON format)
 export interface CoordinationData {
   type: 'team_created' | 'task_delegated' | 'agent_reply' | 'result_merged';
-  from: string;           // 发起方 agent ID
-  to?: string;            // 接收方 agent ID（可选）
-  summary: string;        // 简短描述
-  detail?: string;        // 详细内容（可选）
-  subTaskId?: string;     // 关联的子任务 ID（task_delegated 时使用）
+  from: string;           // initiating agent ID
+  to?: string;            // receiving agent ID (optional)
+  summary: string;        // brief description
+  detail?: string;        // detailed content (optional)
+  subTaskId?: string;     // associated subtask ID (used when task_delegated)
 }
 
 // ─── API Types ───
 
 export interface CreateTaskRequest {
   content: string;
-  agentId?: string;    // 默认 'main'
+  agentId?: string;    // default 'main'
 }
 
 export interface SendMessageRequest {
@@ -94,7 +94,7 @@ export interface SSEEvent {
 // ─── Adapter Types ───
 
 export interface ExecutionEvent {
-  type: 'result' | 'error' | 'coordination';  // 新增 'coordination'
+  type: 'result' | 'error' | 'coordination';  // added 'coordination'
   timestamp: number;
   data: { message: string; [key: string]: unknown } | CoordinationData;
 }

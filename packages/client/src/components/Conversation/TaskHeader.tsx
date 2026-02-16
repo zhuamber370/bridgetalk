@@ -16,24 +16,24 @@ import type { Task } from '@bridgetalk/shared';
 
 export interface TaskHeaderProps {
   task: Task;
-  /** 返回按钮点击回调（Mobile）*/
+  /** Back button click callback (Mobile) */
   onBack?: () => void;
-  /** 标题修改回调 */
+  /** Title change callback */
   onTitleChange?: (newTitle: string) => void;
-  /** 任务操作菜单回调 */
+  /** Task operation menu callbacks */
   onDelete?: () => void;
   onCancel?: () => void;
   onArchive?: () => void;
 }
 
 /**
- * 重构后的任务头部
- * 
- * 改进点：
- * 1. 更大的标题字体
- * 2. 改进的操作按钮布局
- * 3. 更好的编辑交互
- * 4. 折叠显示额外信息
+ * Refactored task header
+ *
+ * Improvements:
+ * 1. Larger title font
+ * 2. Improved action button layout
+ * 3. Better edit interaction
+ * 4. Collapsible additional information
  */
 export function TaskHeader({
   task,
@@ -120,7 +120,7 @@ export function TaskHeader({
   return (
     <div className="shrink-0 border-b border-[var(--color-border)] bg-white">
       <div className="flex items-center gap-3 px-4 py-3">
-        {/* 返回按钮（Mobile）*/}
+        {/* Back button (Mobile) */}
         {onBack && (
           <motion.button
             onClick={onBack}
@@ -132,7 +132,7 @@ export function TaskHeader({
           </motion.button>
         )}
 
-        {/* 标题（可编辑）*/}
+        {/* Title (editable) */}
         <div className="flex-1 min-w-0">
           {editingTitle ? (
             <div className="flex items-center gap-2"
@@ -200,12 +200,12 @@ export function TaskHeader({
           )}
         </div>
 
-        {/* 状态徽章 */}
+        {/* Status badge */}
         <div className="shrink-0">
           <TaskStatusBadge status={task.status} size="md" />
         </div>
 
-        {/* 操作菜单 */}
+        {/* Action menu */}
         <div className="relative" ref={menuRef}>
           <motion.button
             onClick={() => setShowMenu(!showMenu)}
@@ -216,7 +216,7 @@ export function TaskHeader({
             <MoreHorizontal className="w-5 h-5 text-[var(--color-text-secondary)]" />
           </motion.button>
 
-          {/* 下拉菜单 */}
+          {/* Dropdown menu */}
           <AnimatePresence>
             {showMenu && (
               <motion.div
@@ -277,7 +277,7 @@ export function TaskHeader({
         </div>
       </div>
 
-      {/* 详情面板 */}
+      {/* Details panel */}
       <AnimatePresence>
         {showDetails && (
           <motion.div

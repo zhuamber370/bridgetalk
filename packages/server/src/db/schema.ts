@@ -37,23 +37,23 @@ export function initDatabase(dbPath = 'agent_channel_v2.db'): Database.Database 
     CREATE INDEX IF NOT EXISTS idx_messages_task ON messages(task_id, timestamp);
   `);
 
-  // 迁移：为已有数据库增加新字段
+  // Migration: add new fields to existing database
   try {
     db.exec('ALTER TABLE messages ADD COLUMN sender_agent_id TEXT');
   } catch {
-    // 字段已存在，忽略
+    // Field already exists, ignore
   }
 
   try {
     db.exec("ALTER TABLE messages ADD COLUMN message_type TEXT DEFAULT 'chat'");
   } catch {
-    // 字段已存在，忽略
+    // Field already exists, ignore
   }
 
   try {
     db.exec('ALTER TABLE tasks ADD COLUMN parent_task_id TEXT REFERENCES tasks(id) ON DELETE CASCADE');
   } catch {
-    // 字段已存在，忽略
+    // Field already exists, ignore
   }
 
   return db;

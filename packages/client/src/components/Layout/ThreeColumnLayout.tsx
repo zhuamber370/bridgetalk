@@ -2,23 +2,23 @@ import type { ReactNode } from 'react';
 import { useResponsive } from '../../lib/hooks';
 
 export interface ThreeColumnLayoutProps {
-  /** 左侧边栏（Desktop 显示，Agent 列表）*/
+  /** Left sidebar (Desktop display, Agent list) */
   sidebar?: ReactNode;
-  /** 侧边栏是否折叠 */
+  /** Whether sidebar is collapsed */
   sidebarCollapsed?: boolean;
-  /** 中间栏（任务列表）*/
+  /** Middle column (Task list) */
   inbox: ReactNode;
-  /** 右侧栏（对话/详情）*/
+  /** Right column (Conversation/Detail) */
   content?: ReactNode;
-  /** 底部导航（Mobile 显示）*/
+  /** Bottom navigation (Mobile display) */
   bottomNav?: ReactNode;
 }
 
 /**
- * 三栏响应式布局
- * - Desktop (≥1024px): 三栏并排（Sidebar + Inbox + Content）
- * - Tablet (768-1023px): 两栏（Inbox + Content，Sidebar 折叠为下拉）
- * - Mobile (<768px): 单栏（堆叠，底部导航）
+ * Three-column responsive layout
+ * - Desktop (≥1024px): Three columns side by side (Sidebar + Inbox + Content)
+ * - Tablet (768-1023px): Two columns (Inbox + Content, Sidebar collapsed to dropdown)
+ * - Mobile (<768px): Single column (stacked, bottom navigation)
  */
 export function ThreeColumnLayout({
   sidebar,
@@ -29,7 +29,7 @@ export function ThreeColumnLayout({
 }: ThreeColumnLayoutProps) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
 
-  // Mobile: 单栏堆叠布局 + 底部导航
+  // Mobile: Single column stacked layout + bottom navigation
   if (isMobile) {
     return (
       <div className="flex flex-col h-full">
@@ -45,16 +45,16 @@ export function ThreeColumnLayout({
     );
   }
 
-  // Tablet: 两栏布局（Inbox + Content）
+  // Tablet: Two-column layout (Inbox + Content)
   if (isTablet) {
     return (
       <div className="flex h-full">
-        {/* 任务列表栏 */}
+        {/* Task list column */}
         <div className="w-[400px] shrink-0 border-r bg-white overflow-hidden">
           {inbox}
         </div>
 
-        {/* 内容栏 */}
+        {/* Content column */}
         {content && (
           <div className="flex-1 overflow-hidden bg-white">
             {content}
@@ -64,11 +64,11 @@ export function ThreeColumnLayout({
     );
   }
 
-  // Desktop: 三栏布局（Sidebar + Inbox + Content）
+  // Desktop: Three-column layout (Sidebar + Inbox + Content)
   if (isDesktop) {
     return (
       <div className="flex h-full">
-        {/* Agent 侧边栏 */}
+        {/* Agent sidebar */}
         {sidebar && (
           <div
             className="shrink-0 border-r overflow-hidden transition-all duration-300"
@@ -81,12 +81,12 @@ export function ThreeColumnLayout({
           </div>
         )}
 
-        {/* 任务列表栏 */}
+        {/* Task list column */}
         <div className="w-80 shrink-0 border-r bg-white overflow-hidden">
           {inbox}
         </div>
 
-        {/* 内容栏 */}
+        {/* Content column */}
         {content && (
           <div className="flex-1 overflow-hidden bg-white">
             {content}

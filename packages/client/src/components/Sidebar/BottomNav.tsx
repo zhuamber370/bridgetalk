@@ -8,18 +8,18 @@ import { CreateAgentModal } from '../CreateAgentModal';
 import type { Agent } from '@bridgetalk/shared';
 
 export interface BottomNavProps {
-  /** 最多显示的Agent数量（超过显示"更多"）*/
+  /** Maximum number of Agents to display (show "more" if exceeded) */
   maxAgents?: number;
 }
 
 /**
- * 重构后的底部导航栏
- * 
- * 改进点：
- * 1. 更合理的导航结构
- * 2. 快速新建Agent入口
- * 3. Agent列表弹窗
- * 4. 更好的视觉反馈
+ * Refactored bottom navigation bar
+ *
+ * Improvements:
+ * 1. More reasonable navigation structure
+ * 2. Quick create Agent entry
+ * 3. Agent list popup
+ * 4. Better visual feedback
  */
 export function BottomNav({ maxAgents = 4 }: BottomNavProps) {
   const [showAgentList, setShowAgentList] = useState(false);
@@ -31,7 +31,7 @@ export function BottomNav({ maxAgents = 4 }: BottomNavProps) {
   const { t, i18n } = useTranslation();
   const currentLang = i18n.language;
 
-  // 按未读数排序Agent
+  // Sort Agents by unread count
   const sortedAgents = [...agents]
     .map((agent) => ({
       agent,
@@ -57,7 +57,7 @@ export function BottomNav({ maxAgents = 4 }: BottomNavProps) {
   const isHome = location.pathname === '/';
   const isAgentPage = location.pathname.startsWith('/agents/');
 
-  // 生成Agent头像背景色
+  // Generate Agent avatar background color
   const getAvatarColor = (name: string): string => {
     const colors = [
       'bg-blue-500',
@@ -88,7 +88,7 @@ export function BottomNav({ maxAgents = 4 }: BottomNavProps) {
           label={t('pages.agentInbox.home')}
         />
 
-        {/* Agent快捷入口 */}
+        {/* Agent quick access */}
         {displayedAgents.map(({ agent, unreadCount }) => {
           const isActive = ui.currentAgentId === agent.id;
 
@@ -105,7 +105,7 @@ export function BottomNav({ maxAgents = 4 }: BottomNavProps) {
           );
         })}
 
-        {/* 更多Agent / Agent列表 */}
+        {/* More Agents / Agent list */}
         {hasMoreAgents || agents.length === 0 ? (
           <NavButton
             active={showAgentList}
@@ -127,11 +127,11 @@ export function BottomNav({ maxAgents = 4 }: BottomNavProps) {
         />
       </nav>
 
-      {/* Agent列表弹窗 */}
+      {/* Agent list popup */}
       <AnimatePresence>
         {showAgentList && (
           <>
-            {/* 遮罩 */}
+            {/* Overlay */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -140,7 +140,7 @@ export function BottomNav({ maxAgents = 4 }: BottomNavProps) {
               className="fixed inset-0 bg-black/30 z-40"
             />
 
-            {/* 弹窗 */}
+            {/* Popup */}
             <motion.div
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
@@ -149,7 +149,7 @@ export function BottomNav({ maxAgents = 4 }: BottomNavProps) {
               className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 max-h-[70vh] overflow-hidden"
               style={{ paddingBottom: 'var(--safe-area-bottom)' }}
             >
-              {/* 拖动条 */}
+              {/* Drag bar */}
               <div className="flex justify-center pt-3 pb-2">
                 <div className="w-10 h-1 bg-[var(--color-slate-300)] rounded-full" />
               </div>
@@ -172,7 +172,7 @@ export function BottomNav({ maxAgents = 4 }: BottomNavProps) {
                 </div>
               </div>
 
-              {/* Agent列表 */}
+              {/* Agent list */}
               <div className="overflow-y-auto max-h-[50vh]">
                 {sortedAgents.map(({ agent, unreadCount }, index) => {
                   const isActive = ui.currentAgentId === agent.id;
@@ -227,13 +227,13 @@ export function BottomNav({ maxAgents = 4 }: BottomNavProps) {
         )}
       </AnimatePresence>
 
-      {/* 新建Agent模态框 */}
+      {/* Create Agent modal */}
       <CreateAgentModal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} />
     </>
   );
 }
 
-// 导航按钮组件
+// Navigation button component
 interface NavButtonProps {
   active: boolean;
   onClick: () => void;

@@ -11,9 +11,9 @@ export interface KeyBinding {
 }
 
 /**
- * 快捷键绑定 Hook
- * @param bindings 快捷键绑定配置数组
- * @param enabled 是否启用（默认 true）
+ * Keyboard binding Hook
+ * @param bindings Array of keyboard binding configurations
+ * @param enabled Whether to enable (default true)
  */
 export function useKeyboard(bindings: KeyBinding[], enabled = true) {
   useEffect(() => {
@@ -27,7 +27,7 @@ export function useKeyboard(bindings: KeyBinding[], enabled = true) {
         const altMatch = binding.alt ? event.altKey : !event.altKey;
         const keyMatch = event.key.toLowerCase() === binding.key.toLowerCase();
 
-        // Cmd/Ctrl 通用处理（macOS 用 Cmd，Windows/Linux 用 Ctrl）
+        // Cmd/Ctrl universal handling (macOS uses Cmd, Windows/Linux uses Ctrl)
         const cmdCtrlMatch =
           (binding.ctrl || binding.meta) &&
           (event.ctrlKey || event.metaKey) &&
@@ -48,45 +48,45 @@ export function useKeyboard(bindings: KeyBinding[], enabled = true) {
 }
 
 /**
- * 全局快捷键预定义
+ * Global keyboard shortcuts presets
  */
 export const globalKeyBindings = {
-  // Cmd/Ctrl + K: 快速搜索
+  // Cmd/Ctrl + K: Quick search
   quickSearch: (handler: () => void): KeyBinding => ({
     key: 'k',
     meta: true,
     handler,
-    description: '快速搜索任务',
+    description: 'Quick search tasks',
   }),
 
-  // Cmd/Ctrl + N: 新建任务
+  // Cmd/Ctrl + N: New task
   newTask: (handler: () => void): KeyBinding => ({
     key: 'n',
     meta: true,
     handler,
-    description: '新建任务',
+    description: 'Create new task',
   }),
 
-  // Cmd/Ctrl + /: 切换侧边栏
+  // Cmd/Ctrl + /: Toggle sidebar
   toggleSidebar: (handler: () => void): KeyBinding => ({
     key: '/',
     meta: true,
     handler,
-    description: '切换侧边栏',
+    description: 'Toggle sidebar',
   }),
 
-  // Escape: 关闭模态框/取消
+  // Escape: Close modal/cancel
   escape: (handler: () => void): KeyBinding => ({
     key: 'Escape',
     handler,
-    description: '关闭/取消',
+    description: 'Close/cancel',
   }),
 
-  // Cmd/Ctrl + 1-9: 快速切换 Agent
+  // Cmd/Ctrl + 1-9: Quick switch Agent
   switchAgent: (index: number, handler: () => void): KeyBinding => ({
     key: String(index),
     meta: true,
     handler,
-    description: `切换到 Agent ${index}`,
+    description: `Switch to Agent ${index}`,
   }),
 };

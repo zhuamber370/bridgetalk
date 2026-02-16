@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+always reply in chinese
+
 ## Project Overview
 
 BridgeTalk is a modern client for OpenClaw Gateway — a task-focused H5/PWA application where users create AI agents and delegate tasks through natural language. Each task represents an independent conversation, all communication is forwarded to OpenClaw Gateway, and agent contexts are completely isolated. All data is stored locally (zero cloud sync).

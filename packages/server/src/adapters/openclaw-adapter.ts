@@ -70,7 +70,7 @@ export class OpenClawAdapter implements Adapter {
   // Device identity state
   private deviceId: string | null = null;
   private devicePublicKey: string | null = null;
-  private devicePrivateKey: string | null = null; // 用于签名
+  private devicePrivateKey: string | null = null; // for signing
   private deviceToken: string | null = null;
   private readonly deviceConfigDir = join(homedir(), '.openclaw-inbox');
   private usingDeviceTokenForConnection = false;
@@ -94,19 +94,19 @@ export class OpenClawAdapter implements Adapter {
   // Chat event listeners keyed by sessionKey
   private chatEventListeners = new Map<string, (payload: ChatEventPayload) => void>();
 
-  // 🆕 全局 chat 事件监听器（接收所有 chat 事件，无论 sessionKey）
+  // 🆕 Global chat event listener (receives all chat events, regardless of sessionKey)
   private globalChatListener: ((payload: ChatEventPayload) => void) | null = null;
 
   // Map taskId → sessionKey for cancel
   private taskSessionMap = new Map<string, string>();
 
-  // 🆕 已知的 sessionKey 集合（用于检测新的子 agent 活动）
+  // 🆕 Known sessionKey set (used to detect new sub-agent activity)
   private knownSessionKeys = new Set<string>();
   private readonly requiredScopes = [
     'operator.read',
     'operator.write',
-    'operator.pairing',      // 设备配对
-    'operator.approvals',    // 执行审批
+    'operator.pairing',      // device pairing
+    'operator.approvals',    // execution approvals
     'operator.admin'
   ] as const;
 
@@ -120,33 +120,33 @@ export class OpenClawAdapter implements Adapter {
   // ─── Device Identity Management ───
 
   /**
-   * 确保 device identity 已加载或生成
-   * 1. 尝试加载已保存的 keypair
-   * 2. 如果不存在，生成新的 Ed25519 keypair 并保存
-   * 3. 计算 device ID (SHA256 of publicKey)
-   * 4. 尝试加载 device token（如果存在）
+   * Ensure device identity is loaded or generated
+   * 1. Try to load saved keypair
+   * 2. If not exists, generate new Ed25519 keypair and save
+   * 3. Calculate device ID (SHA256 of publicKey)
+   * 4. Try to load device token (if exists)
    */
   private async ensureDeviceIdentity(): Promise<void> {
     if (this.deviceId && this.devicePublicKey) return;
 
-    // 确保配置目录存在
+    // Ensure config directory exists
     try {
       await fs.mkdir(this.deviceConfigDir, { recursive: true, mode: 0o700 });
     } catch (err) {
-      console.error('创建设备配置目录失败:', err);
+      console.error('Failed to create device config directory:', err);
     }
 
     const keypairPath = join(this.deviceConfigDir, 'device-keypair.json');
     let keypair: DeviceKeyPair;
 
     try {
-      // 尝试加载已存在的 keypair
+      // Try to load existing keypair
       const data = await fs.readFile(keypairPath, 'utf-8');
       keypair = JSON.parse(data);
-      console.log('[Device Identity] 已加载现有 keypair');
+      console.log('[Device Identity] Loaded existing keypair');
     } catch {
-      // keypair 不存在，生成新的
-      console.log('[Device Identity] 生成新的 Ed25519 keypair');
+      // keypair does not exist, generate new one
+      console.log('[Device Identity] Generating new Ed25519 keypair');
       const { publicKey, privateKey } = generateKeyPairSync('ed25519', {
         publicKeyEncoding: { type: 'spki', format: 'der' },
         privateKeyEncoding: { type: 'pkcs8', format: 'der' },
@@ -157,45 +157,45 @@ export class OpenClawAdapter implements Adapter {
         privateKey: privateKey.toString('base64'),
       };
 
-      // 保存 keypair 到文件（权限 0600）
+      // Save keypair to file (permissions 0600)
       await fs.writeFile(keypairPath, JSON.stringify(keypair, null, 2), { mode: 0o600 });
-      console.log('[Device Identity] Keypair 已保存到:', keypairPath);
+      console.log('[Device Identity] Keypair saved to:', keypairPath);
     }
 
-    // 从 SPKI DER 格式提取原始 32 字节 Ed25519 公钥
-    // SPKI DER 格式: [12 bytes ASN.1 header][32 bytes raw public key]
+    // Extract raw 32-byte Ed25519 public key from SPKI DER format
+    // SPKI DER format: [12 bytes ASN.1 header][32 bytes raw public key]
     const publicKeyDER = Buffer.from(keypair.publicKey, 'base64');
-    const rawPublicKey = publicKeyDER.slice(-32); // 取最后 32 字节
+    const rawPublicKey = publicKeyDER.slice(-32); // take last 32 bytes
     const rawPublicKeyBase64 = rawPublicKey.toString('base64');
 
-    // 计算 device ID (SHA256 of raw publicKey, hex string)
+    // Calculate device ID (SHA256 of raw publicKey, hex string)
     this.deviceId = createHash('sha256').update(rawPublicKey).digest('hex');
-    this.devicePublicKey = rawPublicKeyBase64; // 使用原始公钥
-    this.devicePrivateKey = keypair.privateKey; // 保存 DER 私钥用于签名
+    this.devicePublicKey = rawPublicKeyBase64; // use raw public key
+    this.devicePrivateKey = keypair.privateKey; // save DER private key for signing
 
     console.log('[Device Identity] Device ID:', this.deviceId);
     console.log('[Device Identity] Raw Public Key:', rawPublicKeyBase64);
 
-    // 尝试加载 device token
+    // Try to load device token
     const tokenPath = join(this.deviceConfigDir, 'device-token.json');
     try {
       const tokenData = await fs.readFile(tokenPath, 'utf-8');
       const { token, expiresAt } = JSON.parse(tokenData) as DeviceToken;
 
-      // 检查 token 是否过期
+      // Check if token is expired
       if (!expiresAt || expiresAt > Date.now()) {
         this.deviceToken = token;
-        console.log('[Device Identity] 已加载 device token');
+        console.log('[Device Identity] Loaded device token');
       } else {
-        console.log('[Device Identity] Device token 已过期');
+        console.log('[Device Identity] Device token expired');
       }
     } catch {
-      console.log('[Device Identity] 未找到 device token，将使用 gateway token');
+      console.log('[Device Identity] Device token not found, will use gateway token');
     }
   }
 
   /**
-   * 保存从 Gateway 返回的 device token
+   * Save device token returned from Gateway
    */
   private async saveDeviceToken(token: string, expiresAt?: number): Promise<void> {
     const tokenPath = join(this.deviceConfigDir, 'device-token.json');
@@ -204,9 +204,9 @@ export class OpenClawAdapter implements Adapter {
     try {
       await fs.writeFile(tokenPath, JSON.stringify(tokenData, null, 2), { mode: 0o600 });
       this.deviceToken = token;
-      console.log('[Device Identity] Device token 已保存');
+      console.log('[Device Identity] Device token saved');
     } catch (err) {
-      console.error('[Device Identity] 保存 device token 失败:', err);
+      console.error('[Device Identity] Failed to save device token:', err);
     }
   }
 
@@ -262,7 +262,7 @@ export class OpenClawAdapter implements Adapter {
           .replace(/\//g, '_')
           .replace(/=+$/g, '');
       } catch (err) {
-        console.warn('[Device Identity] 签名失败，将发送空签名:', err);
+        console.warn('[Device Identity] Signing failed, will send empty signature:', err);
       }
     }
 
@@ -287,21 +287,21 @@ export class OpenClawAdapter implements Adapter {
 
     try {
       await fs.rm(tokenPath, { force: true });
-      console.log(`[Device Identity] 已清理 device token（${reason}）`);
+      console.log(`[Device Identity] Cleaned up device token (${reason})`);
     } catch (err) {
-      console.warn('[Device Identity] 清理 device token 失败:', err);
+      console.warn('[Device Identity] Failed to clean up device token:', err);
     }
   }
 
   /**
-   * 发起设备配对请求（使用 node.pair.request RPC）
+   * Initiate device pairing request (using node.pair.request RPC)
    */
   private async requestDevicePairing(): Promise<string> {
-    console.log('[Device Pairing] 发起配对请求...');
+    console.log('[Device Pairing] Initiating pairing request...');
 
     return new Promise((resolve, reject) => {
       if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-        return reject(new Error('WebSocket 未连接'));
+        return reject(new Error('WebSocket not connected'));
       }
 
       const pairReq: WsRequest = {
@@ -322,23 +322,23 @@ export class OpenClawAdapter implements Adapter {
         resolve: async (res) => {
           if (res.ok) {
             const requestId = (res.payload as { requestId?: string })?.requestId || 'unknown';
-            console.log('[Device Pairing] ✓ 配对请求已创建');
+            console.log('[Device Pairing] ✓ Pairing request created');
             console.log('[Device Pairing] Request ID:', requestId);
-            console.log('[Device Pairing] 请运行以下命令批准配对:');
+            console.log('[Device Pairing] Please run the following command to approve pairing:');
             console.log(`[Device Pairing]   openclaw nodes approve ${requestId}`);
             resolve(requestId);
           } else {
             const errMsg = typeof res.error === 'string'
               ? res.error
               : (res.error as { message?: string })?.message || JSON.stringify(res.error);
-            reject(new Error(`配对请求失败: ${errMsg}`));
+            reject(new Error(`Pairing request failed: ${errMsg}`));
           }
         },
         reject: (err) => reject(err),
       });
 
       this.ws.send(JSON.stringify(pairReq));
-      console.log('[Device Pairing] 已发送 node.pair.request');
+      console.log('[Device Pairing] Sent node.pair.request');
     });
   }
 
@@ -364,15 +364,15 @@ export class OpenClawAdapter implements Adapter {
       await this.waitForConnection();
       return;
     }
-    // 连接前先确保 device identity 已准备好
+    // Ensure device identity is ready before connecting
     await this.ensureDeviceIdentity();
     try {
       await this.connect();
     } catch (err) {
       const errMsg = (err as Error).message;
       if (this.deviceToken && (this.hasMissingScopeError(errMsg) || this.hasDeviceTokenMismatchError(errMsg))) {
-        const reason = this.hasDeviceTokenMismatchError(errMsg) ? 'token 不匹配' : 'scope 不足';
-        console.log(`[Connect] device token ${reason}，回退到 gateway token 重试...`);
+        const reason = this.hasDeviceTokenMismatchError(errMsg) ? 'token mismatch' : 'insufficient scope';
+        console.log(`[Connect] device token ${reason}, falling back to gateway token retry...`);
         await this.invalidateDeviceToken(reason);
         await this.connect();
         return;
@@ -392,12 +392,12 @@ export class OpenClawAdapter implements Adapter {
         if (!this.connecting && (!this.ws || this.ws.readyState === WebSocket.CLOSED)) {
           clearInterval(check);
           clearTimeout(timeout);
-          reject(new Error('WebSocket 连接失败'));
+          reject(new Error('WebSocket connection failed'));
         }
       }, 100);
       const timeout = setTimeout(() => {
         clearInterval(check);
-        reject(new Error('等待 WebSocket 连接超时'));
+        reject(new Error('Waiting for WebSocket connection timeout'));
       }, 15_000);
     });
   }
@@ -427,7 +427,7 @@ export class OpenClawAdapter implements Adapter {
 
       handshakeTimeout = setTimeout(() => {
         ws.close();
-        settle(new Error('WebSocket 握手超时 (15s)'));
+        settle(new Error('WebSocket handshake timeout (15s)'));
       }, 15_000);
 
       ws.on('open', () => {
@@ -442,16 +442,16 @@ export class OpenClawAdapter implements Adapter {
           return;
         }
 
-        // 认证握手：收到 connect.challenge → 发送配对请求或 connect 请求
+        // Authentication handshake: received connect.challenge → send pairing request or connect request
         if (msg.type === 'event' && (msg as WsEvent).event === 'connect.challenge') {
           const evt = msg as WsEvent;
           const challengePayload = evt.payload as { nonce?: string };
 
-          // 优先使用 device token，否则使用 gateway token（都通过 token 字段传递）
+          // Prefer device token, otherwise use gateway token (both passed via token field)
           const useDeviceToken = Boolean(this.deviceToken);
           this.usingDeviceTokenForConnection = useDeviceToken;
           const authParam = { token: useDeviceToken ? this.deviceToken : this.gatewayToken };
-          console.log('[Connect] 使用', useDeviceToken ? 'device token' : 'gateway token', '认证');
+          console.log('[Connect] Using', useDeviceToken ? 'device token' : 'gateway token', 'for authentication');
 
           const connectReq: WsRequest = {
             type: 'req',
@@ -467,7 +467,7 @@ export class OpenClawAdapter implements Adapter {
                 mode: 'backend',
               },
               role: 'operator',
-              // 显式声明所有需要的 scopes (2026.2.14+ operator.admin 不再隐式包含其他 scopes)
+              // Explicitly declare all required scopes (2026.2.14+ operator.admin no longer implicitly includes other scopes)
               scopes: [
                 ...this.requiredScopes
               ],
@@ -486,7 +486,7 @@ export class OpenClawAdapter implements Adapter {
               if (res.ok) {
                 this.authenticated = true;
 
-                // 从 hello-ok 响应中提取 device token（如果存在）
+                // Extract device token from hello-ok response (if exists)
                 const payload = res.payload as { auth?: { deviceToken?: string; expiresAt?: number } };
                 this.logScopeProbe(payload);
                 if (payload?.auth?.deviceToken) {
@@ -496,8 +496,8 @@ export class OpenClawAdapter implements Adapter {
                   );
                 }
 
-                // Gateway 2026.2.14+ 对 pairing scope 更严格，默认不自动发起配对请求，
-                // 避免影响核心 chat.send 能力；如需配对请手动执行 CLI 流程。
+                // Gateway 2026.2.14+ is stricter with pairing scope, does not auto-initiate pairing requests by default,
+                // to avoid affecting core chat.send capability; if pairing is needed, manually execute CLI flow.
 
                 settle();
               } else {
@@ -505,7 +505,7 @@ export class OpenClawAdapter implements Adapter {
                 const errMsg = typeof res.error === 'string'
                   ? res.error
                   : (res.error as { message?: string })?.message || JSON.stringify(res.error);
-                settle(new Error(`认证失败: ${errMsg}`));
+                settle(new Error(`Authentication failed: ${errMsg}`));
               }
             },
             reject: (err) => settle(err),
@@ -516,7 +516,7 @@ export class OpenClawAdapter implements Adapter {
           return;
         }
 
-        // 响应帧 → 关联到 pending request
+        // Response frame → associate to pending request
         if (msg.type === 'res') {
           const res = msg as WsResponse;
           const pending = this.pendingRequests.get(res.id);
@@ -527,20 +527,20 @@ export class OpenClawAdapter implements Adapter {
           return;
         }
 
-        // 事件帧
+        // Event frame
         if (msg.type === 'event') {
           const evt = msg as WsEvent;
 
-          // chat 事件 → 分发给对应 sessionKey 的监听器
+          // chat event → dispatch to listener for corresponding sessionKey
           if (evt.event === 'chat') {
             const payload = evt.payload as ChatEventPayload;
             if (payload?.sessionKey) {
-              // 🆕 先调用全局监听器（用于检测新的子 agent 活动）
+              // 🆕 First call global listener (for detecting new sub-agent activity)
               if (this.globalChatListener) {
                 this.globalChatListener(payload);
               }
 
-              // 再调用特定 sessionKey 的监听器
+              // Then call listener for specific sessionKey
               const listener = this.chatEventListeners.get(payload.sessionKey);
               if (listener) listener(payload);
             }
@@ -549,17 +549,17 @@ export class OpenClawAdapter implements Adapter {
       });
 
       ws.on('error', (err) => {
-        settle(new Error(`WebSocket 错误: ${err.message}`));
+        settle(new Error(`WebSocket error: ${err.message}`));
       });
 
       ws.on('close', (_code, _reason) => {
         this.authenticated = false;
         this.usingDeviceTokenForConnection = false;
         this.ws = null;
-        settle(new Error('WebSocket 连接关闭'));
+        settle(new Error('WebSocket connection closed'));
 
         for (const [id, pending] of this.pendingRequests) {
-          pending.reject(new Error('WebSocket 连接断开'));
+          pending.reject(new Error('WebSocket connection disconnected'));
           this.pendingRequests.delete(id);
         }
 
@@ -583,7 +583,7 @@ export class OpenClawAdapter implements Adapter {
       try {
         await this.connect();
       } catch {
-        // connect 失败会触发 close → 再次调度重连
+        // connect failure will trigger close → schedule reconnect again
       }
     }, delay);
   }
@@ -591,7 +591,7 @@ export class OpenClawAdapter implements Adapter {
   private sendRequest(method: string, params: unknown, timeout?: number): Promise<WsResponse> {
     return new Promise((resolve, reject) => {
       if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-        reject(new Error('WebSocket 未连接'));
+        reject(new Error('WebSocket not connected'));
         return;
       }
 
@@ -604,7 +604,7 @@ export class OpenClawAdapter implements Adapter {
 
       const timer = setTimeout(() => {
         this.pendingRequests.delete(req.id);
-        reject(new Error(`请求超时: ${method}`));
+        reject(new Error(`Request timeout: ${method}`));
       }, timeout || this.timeoutMs);
 
       this.pendingRequests.set(req.id, {
@@ -658,7 +658,7 @@ export class OpenClawAdapter implements Adapter {
     const granted = this.readGrantedScopes(payload);
 
     if (!granted) {
-      console.log('[Scope Probe] Gateway 未返回可解析的 scopes 字段');
+      console.log('[Scope Probe] Gateway did not return parsable scopes field');
       console.log('[Scope Probe] Requested scopes:', requested.join(', '));
       return;
     }
@@ -670,41 +670,41 @@ export class OpenClawAdapter implements Adapter {
     if (missing.length > 0) {
       console.warn('[Scope Probe] Missing scopes:', missing.join(', '));
     } else {
-      console.log('[Scope Probe] 所有必需 scopes 已授予');
+      console.log('[Scope Probe] All required scopes granted');
     }
   }
 
-  // 🆕 注册全局 chat 事件监听器
+  // 🆕 Register global chat event listener
   setGlobalChatListener(listener: (payload: ChatEventPayload) => void): void {
     this.globalChatListener = listener;
   }
 
-  // 🆕 移除全局监听器
+  // 🆕 Remove global listener
   removeGlobalChatListener(): void {
     this.globalChatListener = null;
   }
 
-  // ─── Execute Task (首次创建任务) ───
+  // ─── Execute Task (first time creating task) ───
 
   async *execute(task: Task, content: string): AsyncGenerator<ExecutionEvent> {
     this.cancelledTasks.delete(task.id);
     yield* this.chatSend(task.id, content, task.agentId);
   }
 
-  // ─── Send Message (在已有任务中追加消息) ───
+  // ─── Send Message (append message to existing task) ───
 
   async *sendMessage(task: Task, content: string): AsyncGenerator<ExecutionEvent> {
     yield* this.chatSend(task.id, content, task.agentId);
   }
 
-  // ─── 核心：发送消息到 Gateway 并等待完整回复 ───
+  // ─── Core: send message to Gateway and wait for complete reply ───
 
   private async *chatSend(taskId: string, content: string, agentId: string = 'main'): AsyncGenerator<ExecutionEvent> {
     if (!this.gatewayUrl) {
       yield {
         type: 'error',
         timestamp: Date.now(),
-        data: { message: 'OpenClaw Gateway 未配置，请设置 OPENCLAW_GATEWAY_URL 环境变量' },
+        data: { message: 'OpenClaw Gateway not configured, please set OPENCLAW_GATEWAY_URL environment variable' },
       };
       return;
     }
@@ -715,14 +715,14 @@ export class OpenClawAdapter implements Adapter {
       yield {
         type: 'error',
         timestamp: Date.now(),
-        data: { message: `WebSocket 连接失败: ${(err as Error).message}` },
+        data: { message: `WebSocket connection failed: ${(err as Error).message}` },
       };
       return;
     }
 
     if (this.cancelledTasks.has(taskId)) return;
 
-    // 事件队列：桥接 WS 回调和 AsyncGenerator
+    // Event queue: bridge WS callback and AsyncGenerator
     const eventQueue: (ExecutionEvent | null)[] = [];
     let queueResolve: (() => void) | null = null;
     let fullOutput = '';
@@ -741,17 +741,17 @@ export class OpenClawAdapter implements Adapter {
       return new Promise(resolve => { queueResolve = resolve; });
     };
 
-    // 每个 Agent 独立 session，通过 agentId 动态构建 sessionKey
+    // Each Agent has independent session, dynamically build sessionKey via agentId
     const sessionKey = `agent:${agentId}:main`;
     this.taskSessionMap.set(taskId, sessionKey);
 
-    // 注册 chat 事件监听器
+    // Register chat event listener
     this.chatEventListeners.set(sessionKey, (payload: ChatEventPayload) => {
       if (this.cancelledTasks.has(taskId)) return;
 
       switch (payload.state) {
         case 'delta': {
-          // delta 只累积文本，不 yield
+          // delta only accumulates text, don't yield
           const deltaContent = this.extractTextContent(payload.message);
           if (deltaContent) {
             fullOutput = deltaContent;
@@ -762,9 +762,9 @@ export class OpenClawAdapter implements Adapter {
         case 'final': {
           gotResult = true;
           const finalContent = this.extractTextContent(payload.message);
-          const output = finalContent || fullOutput || '任务执行完成';
+          const output = finalContent || fullOutput || 'Task execution completed';
 
-          // 检测协调标记
+          // Detect coordination markers
           const coordination = this.detectCoordination(output, agentId);
           if (coordination) {
             pushEvent({
@@ -774,7 +774,7 @@ export class OpenClawAdapter implements Adapter {
             });
           }
 
-          // 继续推送常规结果
+          // Continue pushing regular result
           pushEvent({
             type: 'result',
             timestamp: Date.now(),
@@ -788,7 +788,7 @@ export class OpenClawAdapter implements Adapter {
           pushEvent({
             type: 'error',
             timestamp: Date.now(),
-            data: { message: payload.errorMessage || '执行出错' },
+            data: { message: payload.errorMessage || 'Execution error' },
           });
           pushEvent(null);
           break;
@@ -798,7 +798,7 @@ export class OpenClawAdapter implements Adapter {
           pushEvent({
             type: 'error',
             timestamp: Date.now(),
-            data: { message: '任务已被中止' },
+            data: { message: 'Task has been aborted' },
           });
           pushEvent(null);
           break;
@@ -813,14 +813,14 @@ export class OpenClawAdapter implements Adapter {
         idempotencyKey: randomUUID(),
       });
 
-      // 设备 token 在 Gateway 升级后可能 scope 不足；自动回退 gateway token 并重试一次
+      // Device token may have insufficient scope after Gateway upgrade; auto fall back to gateway token and retry once
       if (!res.ok && this.usingDeviceTokenForConnection) {
         const errMsg = this.extractGatewayError(res.error);
         if (this.hasMissingScopeError(errMsg) || this.hasDeviceTokenMismatchError(errMsg)) {
           const reason = this.hasDeviceTokenMismatchError(errMsg)
-            ? 'chat.send token 不匹配'
-            : 'chat.send scope 不足';
-          console.log('[SendMessage] device token 不可用，回退到 gateway token 重试...');
+            ? 'chat.send token mismatch'
+            : 'chat.send insufficient scope';
+          console.log('[SendMessage] device token unavailable, falling back to gateway token retry...');
           await this.invalidateDeviceToken(reason);
 
           if (this.ws && this.ws.readyState === WebSocket.OPEN) {
@@ -841,22 +841,22 @@ export class OpenClawAdapter implements Adapter {
         yield {
           type: 'error',
           timestamp: Date.now(),
-          data: { message: `Gateway 执行失败: ${errMsg}` },
+          data: { message: `Gateway execution failed: ${errMsg}` },
         };
         return;
       }
 
-      // 超时保护 - 已注释（OpenClaw Gateway 本身会处理超时，客户端不需要额外警告）
+      // Timeout protection - commented out (OpenClaw Gateway handles timeout itself, client doesn't need extra warnings)
       // const timeoutTimer = setTimeout(() => {
       //   pushEvent({
       //     type: 'error',
       //     timestamp: Date.now(),
-      //     data: { message: `Gateway 请求超时 (${this.timeoutMs / 1000}s)` },
+      //     data: { message: `Gateway request timeout (${this.timeoutMs / 1000}s)` },
       //   });
       //   pushEvent(null);
       // }, this.timeoutMs);
 
-      // 消费事件队列
+      // Consume event queue
       while (true) {
         if (this.cancelledTasks.has(taskId)) {
           // clearTimeout(timeoutTimer);
@@ -885,7 +885,7 @@ export class OpenClawAdapter implements Adapter {
       yield {
         type: 'error',
         timestamp: Date.now(),
-        data: { message: `Gateway 通信失败: ${(err as Error).message}` },
+        data: { message: `Gateway communication failed: ${(err as Error).message}` },
       };
     } finally {
       this.chatEventListeners.delete(sessionKey);
@@ -916,20 +916,20 @@ export class OpenClawAdapter implements Adapter {
       return { status: 'unavailable', message: 'OPENCLAW_GATEWAY_URL 未配置' };
     }
     if (!this.gatewayToken) {
-      return { status: 'degraded', message: 'OPENCLAW_GATEWAY_TOKEN 未配置，可能无法认证' };
+      return { status: 'degraded', message: 'OPENCLAW_GATEWAY_TOKEN not configured, may not be able to authenticate' };
     }
     if (this.ws?.readyState === WebSocket.OPEN && this.authenticated) {
-      return { status: 'healthy', message: 'WebSocket 已连接并认证' };
+      return { status: 'healthy', message: 'WebSocket connected and authenticated' };
     }
     if (this.connecting) {
-      return { status: 'degraded', message: 'WebSocket 正在连接中...' };
+      return { status: 'degraded', message: 'WebSocket connecting...' };
     }
-    return { status: 'degraded', message: 'WebSocket 未连接（将在下次请求时自动连接）' };
+    return { status: 'degraded', message: 'WebSocket not connected (will auto-connect on next request)' };
   }
 
   // ─── Private Helpers ───
 
-  // 协调检测：从 agent 输出中识别协调标记
+  // Coordination detection: identify coordination markers from agent output
   private detectCoordination(text: string, currentAgentId: string): CoordinationData | null {
     const patterns = [
       { regex: /\[TEAM_CREATE\]\s*(.+)/, type: 'team_created' as const },

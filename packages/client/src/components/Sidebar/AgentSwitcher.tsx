@@ -4,13 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import type { Agent } from '@bridgetalk/shared';
 
 export interface AgentSwitcherProps {
-  /** 当前选中的 Agent ID */
+  /** Currently selected Agent ID */
   currentAgentId?: string | null;
 }
 
 /**
- * Agent 下拉选择器（Tablet/Mobile）
- * 用于在不显示侧边栏时快速切换 Agent
+ * Agent dropdown selector (Tablet/Mobile)
+ * Used for quickly switching Agents when sidebar is not shown
  */
 export function AgentSwitcher({ currentAgentId }: AgentSwitcherProps) {
   const { agents, tasks } = useAppState();
@@ -21,7 +21,7 @@ export function AgentSwitcher({ currentAgentId }: AgentSwitcherProps) {
 
   const currentAgent = agents.find((a) => a.id === currentAgentId);
 
-  // 点击外部关闭下拉菜单
+  // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -48,22 +48,22 @@ export function AgentSwitcher({ currentAgentId }: AgentSwitcherProps) {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      {/* 触发按钮 */}
+      {/* Trigger button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
       >
-        {/* Agent 头像 */}
+        {/* Agent avatar */}
         <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white text-sm font-medium">
           {currentAgent?.name.slice(0, 1).toUpperCase() ?? '?'}
         </div>
 
-        {/* Agent 名称 */}
+        {/* Agent name */}
         <span className="text-sm font-semibold text-gray-900">
           {currentAgent?.name ?? '选择 Agent'}
         </span>
 
-        {/* 下拉图标 */}
+        {/* Dropdown icon */}
         <svg
           width="16"
           height="16"
@@ -79,7 +79,7 @@ export function AgentSwitcher({ currentAgentId }: AgentSwitcherProps) {
         </svg>
       </button>
 
-      {/* 下拉菜单 */}
+      {/* Dropdown menu */}
       {isOpen && (
         <div
           className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50 max-h-96 overflow-y-auto"
@@ -97,14 +97,14 @@ export function AgentSwitcher({ currentAgentId }: AgentSwitcherProps) {
                   isActive ? 'bg-indigo-50' : ''
                 }`}
               >
-                {/* Agent 头像 */}
+                {/* Agent avatar */}
                 <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                   isActive ? 'bg-indigo-500 text-white' : 'bg-gray-300 text-gray-700'
                 }`}>
                   {agent.name.slice(0, 1).toUpperCase()}
                 </div>
 
-                {/* Agent 信息 */}
+                {/* Agent info */}
                 <div className="flex-1 flex items-center justify-between min-w-0">
                   <div className="flex flex-col items-start min-w-0">
                     <span className={`text-sm font-medium truncate ${
@@ -119,7 +119,7 @@ export function AgentSwitcher({ currentAgentId }: AgentSwitcherProps) {
                     )}
                   </div>
 
-                  {/* 未读徽章 */}
+                  {/* Unread badge */}
                   {unreadCount > 0 && (
                     <span className="shrink-0 ml-2 px-2 py-0.5 rounded-full bg-indigo-500 text-white text-xs font-semibold">
                       {unreadCount}
@@ -127,7 +127,7 @@ export function AgentSwitcher({ currentAgentId }: AgentSwitcherProps) {
                   )}
                 </div>
 
-                {/* 选中指示器 */}
+                {/* Selected indicator */}
                 {isActive && (
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-indigo-600">
                     <polyline points="20 6 9 17 4 12" />
@@ -137,7 +137,7 @@ export function AgentSwitcher({ currentAgentId }: AgentSwitcherProps) {
             );
           })}
 
-          {/* 新建 Agent */}
+          {/* Create Agent */}
           <div className="border-t border-gray-200 mt-2 pt-2">
             <button
               onClick={() => {

@@ -32,7 +32,7 @@ function renderCoordinationText(data: CoordinationData, agents: Agent[]): string
 export function MessageBubble({ message }: { message: Message }) {
   const { agents } = useAppState();
 
-  // 协调消息特殊渲染（居中黄色标签）
+  // Special rendering for coordination messages (centered yellow label)
   if (message.messageType === 'coordination') {
     try {
       const coordData = JSON.parse(message.content) as CoordinationData;
@@ -47,11 +47,11 @@ export function MessageBubble({ message }: { message: Message }) {
         </div>
       );
     } catch {
-      // 解析失败，降级为普通消息
+      // Parse failed, fallback to regular message
     }
   }
 
-  // 常规消息（用户/agent）
+  // Regular messages (user/agent)
   const isUser = message.senderType === 'user';
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-3`}>
@@ -62,7 +62,7 @@ export function MessageBubble({ message }: { message: Message }) {
             : 'bg-gray-100 text-gray-900 rounded-bl-md'
         }`}
       >
-        {/* 如果是 agent 消息且有 senderAgentId，显示来源标签 */}
+        {/* If is agent message with senderAgentId, show source label */}
         {message.senderType === 'agent' && message.senderAgentId && (
           <div className="text-[10px] text-gray-500 mb-1 font-medium">
             {getAgentName(message.senderAgentId, agents)}
