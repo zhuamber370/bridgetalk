@@ -45,9 +45,13 @@ export function AgentInboxPage() {
           dispatch({ type: 'ADD_AGENT', agent });
           dispatch({ type: 'SET_CURRENT_AGENT', agentId });
         })
-        .catch(console.error);
+        .catch((error) => {
+          console.error('Agent not found:', error);
+          // Redirect to home page if agent doesn't exist
+          navigate('/', { replace: true });
+        });
     }
-  }, [agentId, agents, dispatch]);
+  }, [agentId, agents, dispatch, navigate]);
 
   // Load tasks for this agent + poll every 5s as SSE fallback
   useEffect(() => {
