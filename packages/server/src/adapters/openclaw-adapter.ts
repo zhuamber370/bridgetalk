@@ -846,20 +846,20 @@ export class OpenClawAdapter implements Adapter {
         return;
       }
 
-      // 超时保护
-      const timeoutTimer = setTimeout(() => {
-        pushEvent({
-          type: 'error',
-          timestamp: Date.now(),
-          data: { message: `Gateway 请求超时 (${this.timeoutMs / 1000}s)` },
-        });
-        pushEvent(null);
-      }, this.timeoutMs);
+      // 超时保护 - 已注释（OpenClaw Gateway 本身会处理超时，客户端不需要额外警告）
+      // const timeoutTimer = setTimeout(() => {
+      //   pushEvent({
+      //     type: 'error',
+      //     timestamp: Date.now(),
+      //     data: { message: `Gateway 请求超时 (${this.timeoutMs / 1000}s)` },
+      //   });
+      //   pushEvent(null);
+      // }, this.timeoutMs);
 
       // 消费事件队列
       while (true) {
         if (this.cancelledTasks.has(taskId)) {
-          clearTimeout(timeoutTimer);
+          // clearTimeout(timeoutTimer);
           break;
         }
 
@@ -868,7 +868,7 @@ export class OpenClawAdapter implements Adapter {
         while (eventQueue.length > 0) {
           const evt = eventQueue.shift()!;
           if (evt === null) {
-            clearTimeout(timeoutTimer);
+            // clearTimeout(timeoutTimer);
             if (!gotResult && fullOutput) {
               yield {
                 type: 'result',

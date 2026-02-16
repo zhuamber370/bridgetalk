@@ -3,195 +3,200 @@
 <div align="center">
   <img src="./packages/client/public/icon-512.svg" width="120" />
   <p><strong>Bridge the gap between you and AI agents.</strong></p>
-  <p>专为 OpenClaw Gateway 设计的极简客户端</p>
+  <p>A minimal, task-focused client for OpenClaw Gateway</p>
 </div>
 
 ---
 
-## 📖 这是什么？
+## 📖 What is this?
 
-BridgeTalk 是 **[OpenClaw Gateway](https://github.com/openclaw/gateway)** 的现代化客户端，通过 WebSocket 协议与 Gateway 通信。
+BridgeTalk is a modern client for **[OpenClaw Gateway](https://github.com/openclaw/gateway)**, communicating via WebSocket protocol.
 
-**核心特性**：任务优先模式 · 多 Agent 管理 · 本地数据持久化 · 移动优先设计 · 纯黑白极简界面
+**Core Features**: Task-first mode · Multi-agent management · Local data persistence · Mobile-first design · Pure black & white minimalist UI
 
-### 与 OpenClaw 自带 UI 的区别
+### vs. OpenClaw Default UI
 
-| 特性 | OpenClaw 默认 UI | BridgeTalk |
-|------|-----------------|------------|
-| 对话模式 | 简单聊天记录 | **任务优先**，对话围绕任务展开 |
-| Agent 管理 | 单个会话 | **多 Agent** 同时管理 |
-| 数据持久化 | 临时 | **SQLite** 永久保存 |
-| 移动端体验 | 基础 | **PWA**，可安装到主屏幕 |
-| 协作能力 | 无 | **子任务协作**，多 Agent 配合 |
-| 界面风格 | 标准 | **极简黑白**，零干扰 |
+| Feature | OpenClaw Default UI | BridgeTalk |
+|---------|---------------------|------------|
+| Conversation Mode | Simple chat history | **Task-first**, conversations organized around tasks |
+| Agent Management | Single session | **Multi-agent** simultaneous management |
+| Data Persistence | Temporary | **SQLite** permanent storage |
+| Mobile Experience | Basic | **PWA**, installable to home screen |
+| Collaboration | None | **Subtask collaboration**, multi-agent coordination |
+| UI Style | Standard | **Minimalist B&W**, zero distractions |
 
 ---
 
-## 🚀 快速开始
+## 🚀 Quick Start
 
-### 前置要求
+### Prerequisites
 
-- ✅ 已安装并运行 **OpenClaw Gateway**（默认 `ws://127.0.0.1:18789`）
-- ✅ Node.js 18+ 和 pnpm 8+
+- ✅ **OpenClaw Gateway** installed and running (default `ws://127.0.0.1:18789`)
+- ✅ Node.js 18+ and pnpm 8+
 
-### 三步安装
+### 3-Step Installation
 
 ```bash
-# 1. 克隆并安装
+# 1. Clone and install
 git clone https://github.com/zhuamber370/bridgetalk.git
 cd bridgetalk
 pnpm install
 
-# 2. 配置（复制并编辑 .env）
+# 2. Configure (copy and edit .env)
 cp .env.example .env
-# 编辑 .env，填入你的 OpenClaw Gateway Token
+# Edit .env and fill in your OpenClaw Gateway Token
 
-# 3. 启动
+# 3. Start
 pnpm dev
 ```
 
-访问 **http://localhost:5173** 即可使用。
+Visit **http://localhost:5173** to use.
 
-### 首次使用
+### First Use
 
-1. 点击 **"+ 新建 Agent"**
-2. 填写名称（如"助手"）和选择模型（如 `claude-opus-4-6`）
-3. 创建成功后，点击 Agent 卡片进入 Inbox
-4. 输入消息开始对话
-
----
-
-## 📱 界面预览
-
-- **Agent 列表页** `/` - 管理所有 agents
-- **Agent Inbox** `/agents/:id` - 任务列表 + 对话窗口
-- **任务详情** `/agents/:id/tasks/:taskId` - 查看单个任务
+1. Click **"+ New Agent"**
+2. Enter name (e.g. "Assistant") and select model (e.g. `claude-opus-4-6`)
+3. After creation, click the agent card to enter Inbox
+4. Type a message to start conversation
 
 ---
 
-## 🛠️ 开发
+## 📱 UI Preview
+
+- **Agent List** `/` - Manage all agents
+- **Agent Inbox** `/agents/:id` - Task list + conversation window
+- **Task Detail** `/agents/:id/tasks/:taskId` - View single task
+
+---
+
+## 🛠️ Development
 
 ```bash
-# 启动开发服务器（前端 + 后端）
+# Start dev servers (frontend + backend)
 pnpm dev
 
-# 单独启动
-pnpm --filter @bridgetalk/client dev  # 前端 :5173
-pnpm --filter @bridgetalk/server dev  # 后端 :3001
+# Start separately
+pnpm --filter @bridgetalk/client dev  # Frontend :5173
+pnpm --filter @bridgetalk/server dev  # Backend :3001
 
-# 构建生产版本
+# Build for production
 pnpm build
 
-# 类型检查
+# Type check
 pnpm lint
 ```
 
-**数据位置**：
-- 任务和消息：`packages/server/agent_channel_v2.db`
-- Agent 配置：`packages/server/openclaw.json`
+**Data Locations**:
+- Tasks and messages: `packages/server/agent_channel_v2.db`
+- Agent config: `~/.openclaw/openclaw.json` (shared with OpenClaw Gateway)
 
 ---
 
-## 🚢 生产部署
+## 🚢 Production Deployment
 
-### 使用 PM2 + Nginx（推荐）
+### Using PM2 + Nginx (Recommended)
 
 ```bash
-# 1. 构建
+# 1. Build
 pnpm build
 
-# 2. 启动后端（使用 PM2）
+# 2. Start backend (using PM2)
 cd packages/server
 pm2 start dist/index.js --name bridgetalk
 pm2 save
 
-# 3. 配置 Nginx（参考 nginx.conf.example）
+# 3. Configure Nginx (see nginx.conf.example)
 sudo cp nginx.conf.example /etc/nginx/sites-available/bridgetalk
-# 编辑配置，修改域名和路径
+# Edit config, modify domain and paths
 sudo ln -s /etc/nginx/sites-available/bridgetalk /etc/nginx/sites-enabled/
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
-详细部署指南见 [DEPLOYMENT.md](./DEPLOYMENT.md)
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment guide.
 
 ---
 
-## ❓ 常见问题
+## ❓ FAQ
 
 <details>
-<summary><strong>Q: 启动后看不到 Agent 列表？</strong></summary>
+<summary><strong>Q: Can't see any agents in the list?</strong></summary>
 
-A: 首次启动时列表为空，需要手动创建第一个 Agent。
+A: BridgeTalk reads agents from `~/.openclaw/openclaw.json`. If the list is empty:
+
+1. Check if OpenClaw Gateway is properly configured
+2. OpenClaw should have at least a `main` agent in `openclaw.json`
+3. You can manually create agents in BridgeTalk using the **"+ New Agent"** button
+4. Check backend logs: `pnpm --filter @bridgetalk/server dev`
 </details>
 
 <details>
-<summary><strong>Q: 提示"无可用模型"？</strong></summary>
+<summary><strong>Q: "No available models" error?</strong></summary>
 
-A: 检查：
-1. OpenClaw Gateway 是否已启动（`ws://127.0.0.1:18789`）
-2. `.env` 中的 `OPENCLAW_GATEWAY_TOKEN` 是否正确
-3. 查看后端日志：`pnpm --filter @bridgetalk/server dev`
+A: Check:
+1. OpenClaw Gateway is running (`ws://127.0.0.1:18789`)
+2. `OPENCLAW_GATEWAY_TOKEN` in `.env` is correct
+3. View backend logs: `pnpm --filter @bridgetalk/server dev`
 </details>
 
 <details>
-<summary><strong>Q: 消息发送后没有响应？</strong></summary>
+<summary><strong>Q: No response after sending message?</strong></summary>
 
-A: 可能原因：
-1. Gateway 连接断开 - 检查后端日志
-2. Token 过期 - 重新生成并更新 `.env`
-3. 网络问题 - 检查浏览器控制台
+A: Possible causes:
+1. Gateway connection lost - check backend logs
+2. Token expired - regenerate and update `.env`
+3. Network issue - check browser console
 </details>
 
 <details>
-<summary><strong>Q: 如何备份数据？</strong></summary>
+<summary><strong>Q: How to backup data?</strong></summary>
 
-A: 备份两个文件即可：
+A: Backup these two files:
 ```bash
 cp packages/server/agent_channel_v2.db ~/backup/
-cp packages/server/openclaw.json ~/backup/
+cp ~/.openclaw/openclaw.json ~/backup/
 ```
 </details>
 
 ---
 
-## 📖 文档
+## 📖 Documentation
 
-- **快速上手** - [README.md](./README.md)（本文档）
-- **架构设计** - [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)
-- **API 参考** - [docs/API.md](./docs/API.md)
-- **部署指南** - [DEPLOYMENT.md](./DEPLOYMENT.md)
-- **贡献指南** - [CONTRIBUTING.md](./CONTRIBUTING.md)
-- **安全政策** - [SECURITY.md](./SECURITY.md)
-
----
-
-## 🤝 参与贡献
-
-我们欢迎所有形式的贡献！
-
-- 🐛 [报告 Bug](https://github.com/zhuamber370/bridgetalk/issues/new?labels=bug)
-- 💡 [提出新功能](https://github.com/zhuamber370/bridgetalk/issues/new?labels=enhancement)
-- 📝 [改进文档](https://github.com/zhuamber370/bridgetalk/issues/new?labels=documentation)
-- 🔧 [提交代码](./CONTRIBUTING.md)
-
-详见 [CONTRIBUTING.md](./CONTRIBUTING.md)
+- **Quick Start** - [README.md](./README.md) (this file)
+- **Architecture** - [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)
+- **API Reference** - [docs/API.md](./docs/API.md)
+- **Deployment Guide** - [DEPLOYMENT.md](./DEPLOYMENT.md)
+- **Contributing** - [CONTRIBUTING.md](./CONTRIBUTING.md)
+- **Security** - [SECURITY.md](./SECURITY.md)
 
 ---
 
-## 📄 开源协议
+## 🤝 Contributing
 
-本项目基于 [MIT License](./LICENSE) 开源。
+We welcome all forms of contributions!
+
+- 🐛 [Report Bug](https://github.com/zhuamber370/bridgetalk/issues/new?labels=bug)
+- 💡 [Feature Request](https://github.com/zhuamber370/bridgetalk/issues/new?labels=enhancement)
+- 📝 [Improve Docs](https://github.com/zhuamber370/bridgetalk/issues/new?labels=documentation)
+- 🔧 [Submit PR](./CONTRIBUTING.md)
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 ---
 
-## 🙏 致谢
+## 📄 License
 
-- 基于 [OpenClaw Gateway](https://github.com/openclaw/gateway) 构建
-- 灵感来源于极简设计理念
+This project is licensed under the [MIT License](./LICENSE).
+
+---
+
+## 🙏 Acknowledgments
+
+- Built with [OpenClaw Gateway](https://github.com/openclaw/gateway)
+- Inspired by minimalist design principles
 
 ---
 
 <div align="center">
   <p>Made with ⚫⚪ by <a href="https://github.com/zhuamber370">zhuamber370</a></p>
-  <p>如果觉得有用，请给个 ⭐️</p>
+  <p>If you find this useful, please give it a ⭐️</p>
 </div>

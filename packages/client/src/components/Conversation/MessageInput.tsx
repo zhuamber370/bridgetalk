@@ -51,12 +51,9 @@ export function MessageInput({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-  if (e.key === 'Enter' && e.shiftKey) {
+    // Shift + Enter: 换行
+    if (e.key === 'Enter' && e.shiftKey) {
       return;
-    }
-    if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
-      e.preventDefault();
-      handleSubmit();
     }
 
     // Enter: 发送
