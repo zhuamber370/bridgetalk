@@ -194,6 +194,13 @@ This project is licensed under the [MIT License](./LICENSE).
 - Built with [OpenClaw Gateway](https://github.com/openclaw/gateway)
 - Inspired by minimalist design principles
 
+## 🤖 AI-Powered Development
+
+All code and documentation in this project were created with the assistance of AI:
+- **Claude** (Anthropic) - Architecture design, core implementation, and documentation
+- **Codex** (OpenAI) - Code generation and optimization
+- **Kimi** (Moonshot AI) - Additional development support
+
 ---
 
 <div align="center">
