@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 always reply in chinese
 ## Project Overview
 
-**BridgeTalk** — A minimal, task-focused client for OpenClaw Gateway. A mobile-first H5/PWA chat application where users delegate tasks to Agents via natural language or quick-action buttons. Task execution progress and results are displayed inline in the conversation flow. All data is stored locally (zero cloud sync).
+OpenClaw Agent Native Communication Platform — a mobile-first H5/PWA chat application where users delegate tasks to Agents via natural language or quick-action buttons. Task execution progress and results are displayed inline in the conversation flow. All data is stored locally (zero cloud sync).
 
 The requirements specification is in `REQUIREMENTS.md` (written in Chinese).
 
