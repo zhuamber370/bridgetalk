@@ -1,3 +1,5 @@
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import type { Message, CoordinationData, Agent } from '@bridgetalk/shared';
 import { useAppState } from '../lib/store';
 
@@ -68,7 +70,15 @@ export function MessageBubble({ message }: { message: Message }) {
             {getAgentName(message.senderAgentId, agents)}
           </div>
         )}
-        <div className="whitespace-pre-wrap break-words">{message.content}</div>
+        <div className={`break-words ${isUser ? '' : 'markdown-content'}`}>
+          {isUser ? (
+            <div className="whitespace-pre-wrap">{message.content}</div>
+          ) : (
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {message.content}
+            </ReactMarkdown>
+          )}
+        </div>
         <div
           className={`text-[10px] mt-1 ${
             isUser ? 'text-indigo-200' : 'text-gray-400'

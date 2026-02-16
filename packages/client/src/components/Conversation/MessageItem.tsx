@@ -1,4 +1,6 @@
 import { User, Bot } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import type { Message, CoordinationData, Agent } from '@bridgetalk/shared';
 import { useAppState } from '../../lib/store';
 
@@ -174,13 +176,15 @@ export function MessageItem({
 
             {/* 消息气泡 */}
             <div
-              className="px-5 py-3.5 rounded-2xl bg-white border border-[var(--color-border)] text-[var(--color-text)] text-[16px] leading-relaxed shadow-sm"
+              className="px-5 py-3.5 rounded-2xl bg-white border border-[var(--color-border)] text-[var(--color-text)] text-[16px] leading-relaxed shadow-sm markdown-content"
               style={{
                 borderRadius: isGrouped ? '4px 20px 20px 20px' : '20px 20px 20px 4px',
                 wordBreak: 'break-word',
               }}
             >
-              {message.content}
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {message.content}
+              </ReactMarkdown>
             </div>
 
             {/* 时间戳 */}
