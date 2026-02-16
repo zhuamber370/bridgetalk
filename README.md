@@ -4,6 +4,7 @@
   <img src="./packages/client/public/icon-512.svg" width="120" />
   <p><strong>Bridge the gap between you and AI agents.</strong></p>
   <p>A minimal, task-focused client for OpenClaw Gateway</p>
+  <p><em>Built entirely with AI assistance (Claude, Codex & Kimi)</em></p>
 </div>
 
 ---
