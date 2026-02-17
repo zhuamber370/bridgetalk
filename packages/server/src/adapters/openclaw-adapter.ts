@@ -224,7 +224,13 @@ export class OpenClawAdapter implements Adapter {
     signature: string;
     signedAt: number;
     nonce?: string;
-  } {
+  } | null {
+    // Without a device token, avoid sending device identity to prevent
+    // gateway from enforcing device-token-only auth for a known device.
+    if (!this.deviceToken) {
+      return null;
+    }
+
     const signedAt = Date.now();
     const tokenForSign = this.deviceToken || this.gatewayToken || '';
     const role = 'operator';
@@ -453,32 +459,37 @@ export class OpenClawAdapter implements Adapter {
           const authParam = { token: useDeviceToken ? this.deviceToken : this.gatewayToken };
           console.log('[Connect] Using', useDeviceToken ? 'device token' : 'gateway token', 'for authentication');
 
+          const devicePayload = this.buildDevicePayload(challengePayload?.nonce);
+          const connectParams: Record<string, unknown> = {
+            minProtocol: 3,
+            maxProtocol: 3,
+            client: {
+              id: 'gateway-client',
+              version: '1.0.0',
+              platform: process.platform,
+              mode: 'backend',
+            },
+            role: 'operator',
+            // Explicitly declare all required scopes (2026.2.14+ operator.admin no longer implicitly includes other scopes)
+            scopes: [
+              ...this.requiredScopes
+            ],
+            caps: [],
+            commands: [],
+            permissions: {},
+            auth: authParam,
+            locale: 'zh-CN',
+            userAgent: 'openclaw-agent-inbox/1.0.0',
+          };
+          if (devicePayload) {
+            connectParams.device = devicePayload;
+          }
+
           const connectReq: WsRequest = {
             type: 'req',
             id: this.nextReqId(),
             method: 'connect',
-            params: {
-              minProtocol: 3,
-              maxProtocol: 3,
-              client: {
-                id: 'gateway-client',
-                version: '1.0.0',
-                platform: process.platform,
-                mode: 'backend',
-              },
-              role: 'operator',
-              // Explicitly declare all required scopes (2026.2.14+ operator.admin no longer implicitly includes other scopes)
-              scopes: [
-                ...this.requiredScopes
-              ],
-              caps: [],
-              commands: [],
-              permissions: {},
-              device: this.buildDevicePayload(challengePayload?.nonce),
-              auth: authParam,
-              locale: 'zh-CN',
-              userAgent: 'openclaw-agent-inbox/1.0.0',
-            },
+            params: connectParams,
           };
 
           this.pendingRequests.set(connectReq.id, {
