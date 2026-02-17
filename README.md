@@ -33,7 +33,15 @@ BridgeTalk is a modern client for **[OpenClaw Gateway](https://github.com/opencl
 ### Prerequisites
 
 - ✅ **OpenClaw Gateway** installed and running (default `ws://127.0.0.1:18789`)
-- ✅ Node.js 18+ and pnpm 8+
+- ✅ Node.js 18+ and pnpm 8+ (recommended: Node 20/22 LTS)
+
+> Windows note (`better-sqlite3`): Node 24 may not have matching prebuilt binaries, which can trigger `node-gyp rebuild`.
+> If install fails, switch to Node 22 LTS and reinstall:
+> ```bash
+> nvm install 22
+> nvm use 22
+> pnpm install
+> ```
 
 ### 3-Step Installation
 
@@ -128,6 +136,17 @@ A: BridgeTalk reads agents from `~/.openclaw/openclaw.json`. If the list is empt
 2. OpenClaw should have at least a `main` agent in `openclaw.json`
 3. You can manually create agents in BridgeTalk using the **"+ New Agent"** button
 4. Check backend logs: `pnpm --filter @bridgetalk/server dev`
+</details>
+
+<details>
+<summary><strong>Q: Frontend stays on "Loading..." after <code>pnpm dev</code>?</strong></summary>
+
+A: Check in this order:
+1. Confirm backend is running: `pnpm --filter @bridgetalk/server dev` and check `http://localhost:3001/health`
+2. Confirm frontend is running on `http://localhost:5173`
+3. Open browser DevTools Network tab and verify `/api/v1/agents` is `200`
+4. If `/api/v1/agents` fails, verify OpenClaw config file exists: `~/.openclaw/openclaw.json` (or set `OPENCLAW_HOME`)
+5. On Windows, if you previously installed with Node 24, switch to Node 22 and reinstall dependencies
 </details>
 
 <details>
