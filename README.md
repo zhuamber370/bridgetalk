@@ -168,6 +168,30 @@ A: Possible causes:
 </details>
 
 <details>
+<summary><strong>Q: Sending message fails with <code>missing scope: operator.write</code>?</strong></summary>
+
+A: This is a Gateway device scope issue (not frontend UI):
+1. Run `openclaw devices list --json`
+2. Find the device with `clientId: "gateway-client"` and `clientMode: "backend"`
+3. Rotate that device token with full operator scopes (example):
+   `openclaw devices rotate --device &lt;DEVICE_ID&gt; --role operator --scope operator.read --scope operator.write --scope operator.pairing --scope operator.approvals --scope operator.admin`
+4. Delete local cache files (`~/.openclaw-inbox/device-token.json` and `~/.openclaw-inbox/device-keypair.json`)
+5. Restart Gateway and `pnpm dev`
+</details>
+
+<details>
+<summary><strong>Q: Sending message fails with <code>HTTP 401 authentication_error: API Key invalid/expired</code>?</strong></summary>
+
+A: This means the upstream model provider key used by OpenClaw Gateway is invalid/expired:
+1. Confirm which model your agent is using
+2. Update the corresponding provider API key in Gateway configuration/environment
+3. Restart Gateway
+4. Restart BridgeTalk (`pnpm dev`) and retry
+
+Note: This is different from `OPENCLAW_GATEWAY_TOKEN` in BridgeTalk `.env`.
+</details>
+
+<details>
 <summary><strong>Q: How to backup data?</strong></summary>
 
 A: Backup these two files:
