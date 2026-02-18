@@ -390,8 +390,18 @@ textarea:focus-visible {
 
 /* 选择文本颜色 */
 ::selection {
-  background: var(--color-primary-light);
-  color: var(--color-primary-dark);
+  background: rgba(251, 191, 36, 0.45);
+  color: #111827;
+}
+
+.message-selectable::selection {
+  background: rgba(15, 23, 42, 0.28);
+  color: inherit;
+}
+
+.user-message-selectable::selection {
+  background: rgba(255, 255, 255, 0.45);
+  color: #ffffff;
 }
 
 /* ============================================

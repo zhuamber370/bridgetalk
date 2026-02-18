@@ -1,6 +1,8 @@
-import { User, Bot } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { User, Bot, Copy, Check } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useTranslation } from 'react-i18next';
 import type { Message, CoordinationData, Agent } from '@bridgetalk/shared';
 import { useAppState } from '../../lib/store';
 
@@ -30,7 +32,18 @@ export function MessageItem({
   showAvatar = true,
   isGrouped = false,
 }: MessageItemProps) {
+  const { t } = useTranslation();
   const { agents } = useAppState();
+  const [copied, setCopied] = useState(false);
+  const copiedTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copiedTimerRef.current) {
+        window.clearTimeout(copiedTimerRef.current);
+      }
+    };
+  }, []);
 
   const formatTime = (timestamp: number): string => {
     return new Date(timestamp).toLocaleTimeString('zh-CN', {
@@ -59,6 +72,31 @@ export function MessageItem({
       hash = agentId.charCodeAt(i) + ((hash << 5) - hash);
     }
     return colors[Math.abs(hash) % colors.length];
+  };
+
+  const handleCopy = async (): Promise<void> => {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(message.content);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = message.content;
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      setCopied(true);
+      if (copiedTimerRef.current) {
+        window.clearTimeout(copiedTimerRef.current);
+      }
+      copiedTimerRef.current = window.setTimeout(() => setCopied(false), 1500);
+    } catch (err) {
+      console.error('Copy failed:', err);
+    }
   };
 
   // System/coordination messages (centered display)
@@ -116,7 +154,7 @@ export function MessageItem({
 
           {/* Message bubble */}
           <div
-            className="px-5 py-3.5 rounded-2xl bg-[var(--color-primary)] text-white text-[16px] leading-relaxed"
+            className="px-5 py-3.5 rounded-2xl bg-[var(--color-primary)] text-white text-[16px] leading-relaxed message-selectable user-message-selectable"
             style={{
               borderRadius: isGrouped ? '20px 20px 4px 20px' : '20px 4px 20px 20px',
               wordBreak: 'break-word',
@@ -125,9 +163,23 @@ export function MessageItem({
             {message.content}
           </div>
 
+          {/* Actions */}
+          <div className="flex items-center gap-2 mt-1.5 mr-1">
+            <button
+              type="button"
+              onClick={handleCopy}
+              className="inline-flex items-center gap-1 text-[12px] text-white/80 hover:text-white transition-colors"
+              aria-label={t('message.copyAria')}
+              title={copied ? t('message.copied') : t('message.copy')}
+            >
+              {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{copied ? t('message.copied') : t('message.copy')}</span>
+            </button>
+          </div>
+
           {/* Timestamp */}
           {!isGrouped && (
-            <span className="text-[12px] text-[var(--color-text-muted)] mt-1.5 mr-1">
+            <span className="text-[12px] text-[var(--color-text-muted)] mt-1 mr-1">
               {formatTime(message.timestamp)}
             </span>
           )}
@@ -176,7 +228,7 @@ export function MessageItem({
 
             {/* 消息气泡 */}
             <div
-              className="px-5 py-3.5 rounded-2xl bg-white border border-[var(--color-border)] text-[var(--color-text)] text-[16px] leading-relaxed shadow-sm markdown-content"
+              className="px-5 py-3.5 rounded-2xl bg-white border border-[var(--color-border)] text-[var(--color-text)] text-[16px] leading-relaxed shadow-sm markdown-content message-selectable"
               style={{
                 borderRadius: isGrouped ? '4px 20px 20px 20px' : '20px 20px 20px 4px',
                 wordBreak: 'break-word',
@@ -187,9 +239,22 @@ export function MessageItem({
               </ReactMarkdown>
             </div>
 
+            <div className="flex items-center gap-2 mt-1.5 ml-1">
+              <button
+                type="button"
+                onClick={handleCopy}
+                className="inline-flex items-center gap-1 text-[12px] text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
+                aria-label={t('message.copyAria')}
+                title={copied ? t('message.copied') : t('message.copy')}
+              >
+                {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                <span>{copied ? t('message.copied') : t('message.copy')}</span>
+              </button>
+            </div>
+
             {/* 时间戳 */}
             {!isGrouped && (
-              <span className="text-[12px] text-[var(--color-text-muted)] mt-1.5 ml-1">
+              <span className="text-[12px] text-[var(--color-text-muted)] mt-1 ml-1">
                 {formatTime(message.timestamp)}
               </span>
             )}

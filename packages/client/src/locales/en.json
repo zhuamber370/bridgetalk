@@ -117,7 +117,10 @@
     "shiftEnterToNewLine": "Shift + Enter for new line",
     "noMessages": "No messages yet",
     "send": "Send message",
-    "messageContent": "Message content"
+    "messageContent": "Message content",
+    "copy": "Copy",
+    "copied": "Copied",
+    "copyAria": "Copy message content"
   },
   "errors": {
     "createTaskFailed": "Failed to create task",

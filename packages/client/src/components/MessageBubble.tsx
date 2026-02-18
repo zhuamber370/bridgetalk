@@ -1,3 +1,6 @@
+import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Copy, Check } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { Message, CoordinationData, Agent } from '@bridgetalk/shared';
@@ -32,7 +35,43 @@ function renderCoordinationText(data: CoordinationData, agents: Agent[]): string
 }
 
 export function MessageBubble({ message }: { message: Message }) {
+  const { t } = useTranslation();
   const { agents } = useAppState();
+  const [copied, setCopied] = useState(false);
+  const copiedTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copiedTimerRef.current) {
+        window.clearTimeout(copiedTimerRef.current);
+      }
+    };
+  }, []);
+
+  const handleCopy = async (): Promise<void> => {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(message.content);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = message.content;
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      setCopied(true);
+      if (copiedTimerRef.current) {
+        window.clearTimeout(copiedTimerRef.current);
+      }
+      copiedTimerRef.current = window.setTimeout(() => setCopied(false), 1500);
+    } catch (err) {
+      console.error('Copy failed:', err);
+    }
+  };
 
   // Special rendering for coordination messages (centered yellow label)
   if (message.messageType === 'coordination') {
@@ -72,13 +111,27 @@ export function MessageBubble({ message }: { message: Message }) {
         )}
         <div className={`break-words ${isUser ? '' : 'markdown-content'}`}>
           {isUser ? (
-            <div className="whitespace-pre-wrap">{message.content}</div>
+            <div className="whitespace-pre-wrap message-selectable user-message-selectable">{message.content}</div>
           ) : (
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {message.content}
-            </ReactMarkdown>
+            <div className="message-selectable">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {message.content}
+              </ReactMarkdown>
+            </div>
           )}
         </div>
+        <button
+          type="button"
+          onClick={handleCopy}
+          className={`inline-flex items-center gap-1 text-[10px] mt-1 ${
+            isUser ? 'text-indigo-200 hover:text-white' : 'text-gray-500 hover:text-gray-700'
+          }`}
+          aria-label={t('message.copyAria')}
+          title={copied ? t('message.copied') : t('message.copy')}
+        >
+          {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+          <span>{copied ? t('message.copied') : t('message.copy')}</span>
+        </button>
         <div
           className={`text-[10px] mt-1 ${
             isUser ? 'text-indigo-200' : 'text-gray-400'
